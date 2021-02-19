@@ -23,15 +23,15 @@
 //! define the initial population of EDA (default: 20000)
 #define EDA_INIT_POP (100000)
 //! define the selected population of EDA (default: 20)
-#define EDA_SEL_POP (1000)
+#define EDA_SEL_POP (10000)
 //! define the number of iterations of EDA (default: 100)
-#define EDA_ITER_NUM (100)
+#define EDA_ITER_NUM (1000)
 //! define the threshold of ratio of reprojection errors between iterations (default: 0.10)
-#define EDA_REPROJ_ERR_THLD (0.001)
+#define EDA_REPROJ_ERR_THLD (0.0001)
 //! defines range for 2D point variation 
-#define EDA_RNG_2DPT (0.05)
+#define EDA_RNG_2DPT (0.005)
 //! defines range for 3D point variation
-#define EDA_RNG_3DPT (0.05)
+#define EDA_RNG_3DPT (0.005)
 
 static double rand2(long idum)
 {
@@ -132,3 +132,16 @@ static cv::Point2f backproj2D3D(cv::Point2f pt2d, cv::Mat homoMat){
     return pt3d;
 }
 
+static cv::Point2f proj3D2D(cv::Point2f pt3d, cv::Mat homoMat){
+    cv::Mat o3dPtMat(3, 1, CV_64F);
+    cv::Mat o2dPtMat(3, 1, CV_64F);
+    cv::Point2f o2dPt;
+
+    o3dPtMat.at<double>(0, 0) = pt3d.x;
+    o3dPtMat.at<double>(1, 0) = pt3d.y;
+    o3dPtMat.at<double>(2, 0) = 1;
+    o2dPtMat = homoMat * o3dPtMat;
+    o2dPt = cv::Point2f((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0)));
+
+    return o2dPt;
+}

@@ -15,21 +15,19 @@
   // camera calibration
   "camCal": {
     // flag of selecting 2D points on the frame image
-    "calSel2dPtFlg": 1,
+    "calSel2dPtFlg": 0,
     // flag to turn on EDA optmimization
-    "edaOptFlg" : 1,
+    "edaOptFlg" : 0,
     // input sequence of 2D points on the ground plane, necessary when calSel2dPtFlg = 0
     "cal2dPtLs": [
-      [ 1045, 893 ],
-      [ 1576, 969 ],
-      [ 1593, 415 ],
-      [ 1802, 471 ],
-      [ 1608, 379 ],
-      [ 845, 290 ],
-      [ 941, 271 ],
-      [ 711, 278 ],
-      [ 126, 480 ],
-      [ 73, 436 ]
+      [ 239, 427 ],
+      [ 365, 388 ],
+      [ 116, 244 ],
+      [ 164, 201 ],
+      [ 458, 269 ],
+      [ 358, 189 ],
+      [ 229, 413 ],
+      [ 268, 168 ]
     ],
     // input sequence of 3D points on the ground plane
     "cal3dPtLs": [
@@ -43,7 +41,7 @@
       [47.56626635306361, -122.33953740110947]
     ],
     // method used to computed the camera matrix: 0 - a regular method using all the points; 4 - Least-Median robust method; 8 - RANSAC-based robust method; -1 - Optimum method with minimum reprojection error
-    "calTyp": 4,
+    "calTyp": 0,
     // maximum allowed reprojection error to treat a point pair as an inlier, necessary when calTyp = 8
     "calRansacReprojThld": 100.0,
     // dimension of the grid on the ground plane to display

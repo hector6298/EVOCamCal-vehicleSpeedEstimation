@@ -56,7 +56,11 @@ private:
 	//! runs all calibration types
 	void runAllCalTyp(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt);
 	//! calculates reprojection error
-	double calcReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld);
+	double calcReprojErr2D(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld);
+	//
+	double calcReprojErr3D(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld);
+	//
+	double calcReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld, std::string mode = "2D3D");
 	//! outputs text file of homography matrix
 	void outTxt(void);
 	//! plots a display grid on the ground plane
@@ -84,6 +88,8 @@ private:
 	cv::Mat m_oHomoMat;
 	//! reprojection error
 	double m_fReprojErr;
+	//
+	double dReprojErr;
 };
 
 // selector of 2D points for PnP

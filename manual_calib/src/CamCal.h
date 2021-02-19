@@ -88,8 +88,10 @@ private:
 	cv::Mat m_oHomoMat;
 	//! reprojection error
 	double m_fReprojErr;
-	//
+	//! Distance Error
 	double dReprojErr;
+	//! projection error
+	double m_projErr;
 };
 
 // selector of 2D points for PnP

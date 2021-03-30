@@ -7,8 +7,10 @@ from haversine import haversine, Unit
 from .projectiveGeometry import  parseHomography, homography2Dto3D
 import math
 
+
+
 class Tracker:
-    def __init__(self, height, width, maxlost = 30, speed_update_rate = 10, params_file=None):
+    def __init__(self, height, width, maxlost = 30, speed_update_rate=25, emaAlpha = 0.4, params_file=None):
         self.speed_update_rate = speed_update_rate
         self.nextObjId = 0
         self.objs = OrderedDict()
@@ -23,7 +25,21 @@ class Tracker:
         self.height = height
         self.width = width
         self.projectionMat = parseHomography(params_file)
-        print(self.projectionMat)
+        ##### exp moving average ##################
+        self.emaAlpha = emaAlpha
+        self.objsRealVel = OrderedDict()
+        self.objsPrevRealVel = OrderedDict()
+        self.objsEMARealVel = OrderedDict()
+        self.objsVelDataCount = OrderedDict()
+        self.frameCount = OrderedDict()
+        self.objVelHist = dict()
+
+    def emaVelocity(self, objectID:int):
+        if self.objsVelDataCount[objectID] == 1:
+            vel = self.objsRealVel[objectID]
+        else:
+            vel = self.emaAlpha*self.objsRealVel[objectID] + (1 - self.emaAlpha)*self.objsEMARealVel[objectID]
+        return vel
 
     def addObject(self, new_object_location):
         self.objs[self.nextObjId] = new_object_location
@@ -85,6 +101,14 @@ class Tracker:
                     componentDist = haversine(self.objsNewestRealLoc[objectID], self.objsPrevRealLoc[objectID])
                     self.objsRealVel[objectID] = (componentDist/((self.lost[objectID]+self.speed_update_rate)/frameRate))*3600
                     self.objsPrevRealLoc[objectID] = self.objsNewestRealLoc[objectID]
+                    self.objsVelDataCount[objectID] += 1
+                    self.objsEMARealVel[objectID] = self.emaVelocity(objectID)
+
+                    if objectID not in self.objVelHist:
+                        self.objVelHist[objectID] = []
+                    self.objVelHist[objectID].append(self.objsEMARealVel[objectID])
+                        
+                    self.objsPrevRealVel[objectID] = self.objsEMARealVel[objectID]
                     self.frameCount[objectID] = self.speed_update_rate
                 self.lost[objectID] = 0
 

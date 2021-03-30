@@ -17,13 +17,11 @@ def getRoadMap(cap,
                             interpolation = cv2.INTER_CUBIC)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
         mask = extractor._getCarsMaskAtFrame(gray)
-        cv2.imshow("ada", mask)
+
         road_map += mask
         road_map[road_map > 1] = 1
         frames.append(gray)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    cv2.destroyAllWindows()
+
     #road_map[road_map >= 255] = 255
     background = np.median(frames, axis=0).astype(np.uint8)
     road_map = road_map.astype('uint8')

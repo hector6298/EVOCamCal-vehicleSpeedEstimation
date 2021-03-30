@@ -17,10 +17,11 @@ class objectDetector(object):
     """
     Object Detector high level object using YOLOv3 from https://github.com/eriklindernoren/PyTorch-YOLOv3.git
     """
-    def __init__(self, imgSize, weightPath, modelDef, confidenceThres=0.5, IoUThres=0.2):
+    def __init__(self, imgSize, orgSize, weightPath, modelDef, confidenceThres=0.5, IoUThres=0.2):
         self.imgSize = imgSize
         self.confidenceThres = confidenceThres
         self.IoUThres = IoUThres
+        self.orgSize = orgSize
         self.model = Darknet(modelDef, img_size=imgSize).to(device)
         self.tensorType = torch.cuda.FloatTensor if torch.cuda.is_available()\
                                                  else torch.FloatTensor
@@ -43,9 +44,9 @@ class objectDetector(object):
             detections = non_max_suppression(detections, 
                                              self.confidenceThres, 
                                              self.IoUThres)
-        if detections is not None:
+        if detections is not None and detections[0] is not None:
             #x1, y1, x2, y2, conf, confidence, class pred
-            detections = rescale_boxes(detections[0], self.imgSize[0], img.shape[:2])
+            detections = rescale_boxes(detections[0], img.shape[0], self.orgSize)
         return detections
 
 class objectVisualizer(object):

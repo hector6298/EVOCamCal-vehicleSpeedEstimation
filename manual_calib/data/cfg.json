@@ -15,9 +15,9 @@
   // camera calibration
   "camCal": {
     // flag of selecting 2D points on the frame image
-    "calSel2dPtFlg": 1,
+    "calSel2dPtFlg": 0,
     // flag to turn on EDA optmimization
-    "edaOptFlg" : 1,
+    "edaOptFlg" : 0,
     // input sequence of 2D points on the ground plane, necessary when calSel2dPtFlg = 0
     "cal2dPtLs": [
       [

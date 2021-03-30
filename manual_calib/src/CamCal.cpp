@@ -1,6 +1,6 @@
 #include "CamCal.h"
 #include "utils.h"
-
+#include <string>
 using namespace cv;
 C2dPtSel o2dPtSel;
 
@@ -85,10 +85,15 @@ void CCamCal::process(void)
 			runAllCalTyp(m_vo3dPt, m_vo2dPt);
 		}
 		else
-		{
+		{	
 			m_oHomoMat = cv::findHomography(m_vo3dPt, m_vo2dPt, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
-			m_fReprojErr = calcReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
+			m_fReprojErr = calcReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "2D3D");
+			m_projErr = calcReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "3D2D");
+			
 		}
+			dReprojErr = calcDistReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
+			//change from Km to m
+			dReprojErr *= 1000;
 	}
 	else{
 		calCamEdaOpt();
@@ -128,8 +133,8 @@ PtObj CCamCal::initEdaParamRng(std::vector<cv::Point2f> m_vo2dPt){
 		std::cout << "Sizes should be equal" << std::endl;
 	for(int i = 0; i < m_vo2dPt.size(); i++){
 
-		sParamRng.pt2dVecMax.push_back({m_vo2dPt[i].x * (1.0f + EDA_RNG_2DPT), m_vo2dPt[i].y * (1.0f + EDA_RNG_2DPT)});
-		sParamRng.pt2dVecMin.push_back({m_vo2dPt[i].x * (1.0f - EDA_RNG_2DPT), m_vo2dPt[i].y * (1.0f - EDA_RNG_2DPT)});
+		sParamRng.pt2dVecMax.push_back({m_vo2dPt[i].x  + m_oImgFrm.cols*EDA_RNG_2DPT, m_vo2dPt[i].y  + m_oImgFrm.rows*EDA_RNG_2DPT});
+		sParamRng.pt2dVecMin.push_back({m_vo2dPt[i].x  - m_oImgFrm.cols*EDA_RNG_2DPT, m_vo2dPt[i].y  - m_oImgFrm.rows*EDA_RNG_2DPT});
 		
 	}
 	sParamRng.setVectorReady();
@@ -228,7 +233,7 @@ void CCamCal::calCamEdaOpt(void){
 		bProc75 = false;
 		fReprojErrMean = 0.0;
 		fReprojErrStd = 0.0;
-		printf("Hello1\n");
+
 		for(ivoPtParams = voPtParams.begin(); ivoPtParams != voPtParams.end(); ivoPtParams++){
 			std::vector<::Point2f> curr2dPtSet;
 			for( int i = 0; i < m_vo2dPt.size(); i++){
@@ -249,6 +254,9 @@ void CCamCal::calCamEdaOpt(void){
 			m_vo2dPt = curr2dPtSet;
 			ivoPtParams->setHomoMat(m_oHomoMat);
 			dReprojErr = calcDistReprojErr(m_vo3dPt, curr2dPtSet, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
+
+			dReprojErr *= 1000;
+
 			ivoPtParams->setReprojErr(m_fReprojErr);
 			ivoPtParams->setDistReprojErr(dReprojErr);
 
@@ -325,17 +333,20 @@ void CCamCal::output(void)
 void CCamCal::runAllCalTyp(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt)
 {
 	cv::Mat oHomoMat;
-	double fReprojErr;
+	double fReprojErr, fProjErr;
 
 	// a regular method using all the points
 	try
 	{
 		oHomoMat = cv::findHomography(vo3dPt, vo2dPt, 0, 0);
-		fReprojErr = calcReprojErr(vo3dPt, vo2dPt, oHomoMat, 0, 0);
-		if (fReprojErr < m_fReprojErr)
+		fReprojErr = calcReprojErr(vo3dPt, vo2dPt, oHomoMat, 0, 0, "3D2D");
+		fProjErr = calcReprojErr(vo3dPt, vo2dPt, oHomoMat, 0, 0, "2D3D");
+
+		if (fProjErr < m_projErr)
 		{
         		m_fReprojErr = fReprojErr;
         		m_oHomoMat = oHomoMat;
+				m_projErr = fProjErr;
 		}
         }
         catch(cv::Exception& e)
@@ -348,11 +359,14 @@ void CCamCal::runAllCalTyp(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Poin
 	try
 	{
 		oHomoMat = cv::findHomography(vo3dPt, vo2dPt, 4, 0);
-		fReprojErr = calcReprojErr(vo3dPt, vo2dPt, oHomoMat, 4, 0);
-		if (fReprojErr < m_fReprojErr)
+		fReprojErr = calcReprojErr(vo3dPt, vo2dPt, oHomoMat, 4, 0, "3D2D");
+		fProjErr = calcReprojErr(vo3dPt, vo2dPt, oHomoMat, 4, 0, "2D3D");
+
+		if (fProjErr < m_projErr)
 		{
         		m_fReprojErr = fReprojErr;
         		m_oHomoMat = oHomoMat;
+				m_projErr = fProjErr;
 		}
         }
         catch(cv::Exception& e)
@@ -367,11 +381,13 @@ void CCamCal::runAllCalTyp(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Poin
 		try
 		{
 			oHomoMat = cv::findHomography(vo3dPt, vo2dPt, 8, t);
-			fReprojErr = calcReprojErr(vo3dPt, vo2dPt, oHomoMat, 8, t);
-			if (fReprojErr < m_fReprojErr)
+			fReprojErr = calcReprojErr(vo3dPt, vo2dPt, oHomoMat, 8, t, "3D2D");
+			fProjErr = calcReprojErr(vo3dPt, vo2dPt, oHomoMat, 8, t, "2D3D");
+			if (fProjErr < m_projErr)
         		{
         			m_fReprojErr = fReprojErr;
         			m_oHomoMat = oHomoMat;
+					m_projErr = fProjErr;
         		}
         	}
         	catch(cv::Exception& e)
@@ -418,22 +434,28 @@ double CCamCal::calcDistReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<c
 	
 }
 
-double CCamCal::calcReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld)
+double CCamCal::calcReprojErr3D(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld){
+	
+	double fReprojErr = 0;
+
+	for(int i = 0; i < vo3dPt.size(); i++){
+		cv::Point2f pt3d;
+		pt3d = backproj2D3D(vo2dPt[i], oHomoMat);
+		fReprojErr += cv::norm(vo3dPt[i] - pt3d);
+	}
+
+	fReprojErr /= vo3dPt.size();
+	return fReprojErr;
+}
+
+double CCamCal::calcReprojErr2D(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld)
 {
 	double fReprojErr = 0;
 
 	for (int i = 0; i < vo3dPt.size(); i++)
 	{
-		cv::Mat o3dPtMat(3, 1, CV_64F);
-		cv::Mat o2dPtMat(3, 1, CV_64F);
 		cv::Point2f o2dPt;
-
-		o3dPtMat.at<double>(0, 0) = vo3dPt[i].x;
-		o3dPtMat.at<double>(1, 0) = vo3dPt[i].y;
-		o3dPtMat.at<double>(2, 0) = 1;
-		o2dPtMat = oHomoMat * o3dPtMat;
-		o2dPt = cv::Point2f((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0)));
-
+		o2dPt = proj3D2D(vo3dPt[i], oHomoMat);
 		fReprojErr += cv::norm(vo2dPt[i] - o2dPt);
 	}
 
@@ -445,6 +467,13 @@ double CCamCal::calcReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<cv::P
 		std::cout << "Average reprojection error of method #" << nCalTyp << ": " << fReprojErr << std::endl;
 */
     return fReprojErr;
+}
+
+double CCamCal::calcReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld, std::string mode){
+
+	if(mode == "2D3D") return calcReprojErr3D(vo3dPt, vo2dPt, oHomoMat, nCalTyp, fCalRansacReprojThld);
+	else if (mode =="3D2D") return calcReprojErr2D(vo3dPt, vo2dPt, oHomoMat, nCalTyp, fCalRansacReprojThld);
+	else throw "Invalid Option. You should specify wether 2D3D or 3D2D";
 }
 
 void CCamCal::outTxt(void)
@@ -481,8 +510,12 @@ void CCamCal::outTxt(void)
 			oCalDistCoeffMat.at<double>(2), oCalDistCoeffMat.at<double>(3));
 	}
 
-	std::fprintf(pfHomoMat, "Reprojection error: %.15lf\n", m_fReprojErr);
-	std::printf("Reprojection error: %.15lf\n", m_fReprojErr);
+	std::fprintf(pfHomoMat, "Projection error: %.15lf\n", m_projErr);
+	std::printf("Projection error: %.15lf\n", m_projErr);
+	std::fprintf(pfHomoMat, "Backrojection error: %.15lf\n", m_fReprojErr);
+	std::printf("Backprojection error: %.15lf\n", m_fReprojErr);
+	std::fprintf(pfHomoMat, "Distance error: %.15lf\n", dReprojErr);
+	std::printf("Distance error: %.15lf\n", dReprojErr);
 
 	std::fclose(pfHomoMat);
 }

@@ -10,16 +10,13 @@ import math
 
 
 class Tracker:
-    def __init__(self, height, width, maxlost = 30, speed_update_rate=25, emaAlpha = 0.4, params_file=None):
+    def __init__(self, height, width, maxlost = 30, speed_update_rate = 25, emaAlpha = 0.4, params_file=None):
         self.speed_update_rate = speed_update_rate
         self.nextObjId = 0
         self.objs = OrderedDict()
-        #### KEEP EYE ON THIS #####
         self.objsNewestRealLoc = OrderedDict()
         self.objsPrevRealLoc = OrderedDict()
         self.frameCount = OrderedDict()
-        self.objsRealVel = OrderedDict()
-        ################################
         self.lost = OrderedDict()
         self.maxLost = maxlost
         self.height = height
@@ -32,7 +29,6 @@ class Tracker:
         self.objsEMARealVel = OrderedDict()
         self.objsVelDataCount = OrderedDict()
         self.frameCount = OrderedDict()
-        self.objVelHist = dict()
 
     def emaVelocity(self, objectID:int):
         if self.objsVelDataCount[objectID] == 1:
@@ -46,8 +42,11 @@ class Tracker:
         self.objsNewestRealLoc[self.nextObjId] = None
         self.objsPrevRealLoc[self.nextObjId] = homography2Dto3D(new_object_location, self.projectionMat)
         self.objsRealVel[self.nextObjId] = 0.0
-        self.frameCount[self.nextObjId] = 10
+        self.objsPrevRealVel[self.nextObjId] = 0.0
         self.lost[self.nextObjId] = 0
+        self.objsEMARealVel[self.nextObjId] = 0.0
+        self.objsVelDataCount[self.nextObjId] = 0
+        self.frameCount[self.nextObjId] = self.speed_update_rate 
         self.nextObjId += 1
 
     def removeObject(self, objectID):
@@ -56,9 +55,11 @@ class Tracker:
         del self.lost[objectID]
         del self.objsRealVel[objectID]
         del self.objsPrevRealLoc[objectID]
+        del self.objsPrevRealVel[objectID]
+        del self.objsEMARealVel[objectID]
+        del self.objsVelDataCount[objectID]
         del self.frameCount[objectID]
 
-    
     def getLocation(self,bbox):
         x1, y1, x2, y2 = bbox
         return (int((x1 + x2) /2.0),int((y1 + y2 )/2.0))
@@ -82,7 +83,6 @@ class Tracker:
             objectIDs = list(self.objs.keys())
             previous_object_locations = np.array(list(self.objs.values()))
             
-
             D = distance.cdist(previous_object_locations, new_object_locations)
 
             row_idx = D.argmin(axis=1).argsort()
@@ -95,25 +95,23 @@ class Tracker:
                 objectID = objectIDs[row]
                 self.objs[objectID] = new_object_locations[col]
                 self.objsNewestRealLoc[objectID] = homography2Dto3D(self.objs[objectID], self.projectionMat)
+
                 self.frameCount[objectID] -= 1
-                if(self.frameCount[objectID]  == 0):
-                    #componentDist = (self.objsNewestRealLoc[objectID] - self.objsPrevRealLoc[objectID])
+                if(self.frameCount[objectID] == 0):
+
                     componentDist = haversine(self.objsNewestRealLoc[objectID], self.objsPrevRealLoc[objectID])
                     self.objsRealVel[objectID] = (componentDist/((self.lost[objectID]+self.speed_update_rate)/frameRate))*3600
                     self.objsPrevRealLoc[objectID] = self.objsNewestRealLoc[objectID]
                     self.objsVelDataCount[objectID] += 1
                     self.objsEMARealVel[objectID] = self.emaVelocity(objectID)
-
-                    if objectID not in self.objVelHist:
-                        self.objVelHist[objectID] = []
-                    self.objVelHist[objectID].append(self.objsEMARealVel[objectID])
-                        
                     self.objsPrevRealVel[objectID] = self.objsEMARealVel[objectID]
                     self.frameCount[objectID] = self.speed_update_rate
+                
                 self.lost[objectID] = 0
 
                 assignedRows.add(row)
                 assignedCols.add(col)
+
             unassignedRows = set(range(0, D.shape[0])).difference(assignedRows)
             unassignedCols = set(range(0, D.shape[1])).difference(assignedCols)
 
@@ -126,6 +124,5 @@ class Tracker:
             else:
                 for col in unassignedCols:
                     self.addObject(new_object_locations[col])
-        return self.objs, self.objsRealVel
+        return self.objs, self.objsEMARealVel
 
-#### ADD FOR REAL WORLD DISTANCEobjs

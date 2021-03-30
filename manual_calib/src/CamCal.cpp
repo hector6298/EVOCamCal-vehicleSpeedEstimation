@@ -248,8 +248,8 @@ void CCamCal::calCamEdaOpt(void){
 			else{
 
 				m_oHomoMat = cv::findHomography(m_vo3dPt, curr2dPtSet, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
-				m_fReprojErr = calcReprojErr(m_vo3dPt, curr2dPtSet, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "2D3D");
-				m_projErr = calcReprojErr(m_vo3dPt, curr2dPtSet, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "3D2D");
+				m_fReprojErr = calcReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "2D3D");
+				m_projErr = calcReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "3D2D");
 			}
 			m_vo2dPt = curr2dPtSet;
 			ivoPtParams->setHomoMat(m_oHomoMat);

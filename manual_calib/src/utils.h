@@ -23,15 +23,15 @@
 //! define the initial population of EDA (default: 20000)
 #define EDA_INIT_POP (1000000)
 //! define the selected population of EDA (default: 20)
-#define EDA_SEL_POP (100)
+#define EDA_SEL_POP (10000)
 //! define the number of iterations of EDA (default: 100)
 #define EDA_ITER_NUM (1000)
 //! define the threshold of ratio of reprojection errors between iterations (default: 0.10)
 #define EDA_REPROJ_ERR_THLD (0.0001)
 //! defines range for 2D point variation 
-#define EDA_RNG_2DPT (0.05)
+#define EDA_RNG_2DPT (0.005)
 //! defines range for 3D point variation
-#define EDA_RNG_3DPT (0.05)
+#define EDA_RNG_3DPT (0.005)
 
 static double rand2(long idum)
 {

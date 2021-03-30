@@ -40,10 +40,3 @@ Run:
 ./bin
 ```
 
-## Calibration File format
-
-Homography matrix
-Projection Error
-Backprojection error
-distance error
-

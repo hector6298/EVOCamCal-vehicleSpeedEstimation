@@ -7,13 +7,15 @@ from haversine import haversine, Unit
 from .projectiveGeometry import  parseHomography, homography2Dto3D
 import math
 
-
+# TODO investigate SORT tracker, returns [x1,x2,y1,y2, id]. Create a velocity tracker, then modify yolo.draw_bbox to accept
 
 class Tracker:
     def __init__(self, height, width, maxlost = 30, speed_update_rate = 25, emaAlpha = 0.4, params_file=None):
+        
         self.speed_update_rate = speed_update_rate
         self.nextObjId = 0
         self.objs = OrderedDict()
+        self.objsBB = OrderedDict()
         self.objsNewestRealLoc = OrderedDict()
         self.objsPrevRealLoc = OrderedDict()
         self.frameCount = OrderedDict()
@@ -37,8 +39,9 @@ class Tracker:
             vel = self.emaAlpha*self.objsRealVel[objectID] + (1 - self.emaAlpha)*self.objsEMARealVel[objectID]
         return vel
 
-    def addObject(self, new_object_location):
+    def addObject(self, new_object_location, bbox):
         self.objs[self.nextObjId] = new_object_location
+        self.objsBB[self.nextObjId] = bbox
         self.objsNewestRealLoc[self.nextObjId] = None
         self.objsPrevRealLoc[self.nextObjId] = homography2Dto3D(new_object_location, self.projectionMat)
         self.objsRealVel[self.nextObjId] = 0.0
@@ -51,6 +54,7 @@ class Tracker:
 
     def removeObject(self, objectID):
         del self.objs[objectID]
+        del self.objsBB[objectID]
         del self.objsNewestRealLoc[objectID]
         del self.lost[objectID]
         del self.objsRealVel[objectID]
@@ -64,6 +68,20 @@ class Tracker:
         x1, y1, x2, y2 = bbox
         return (int((x1 + x2) /2.0),int((y1 + y2 )/2.0))
 
+    def write_velocities(self, image):
+        fontScale = 0.5
+        image_h, image_w, _ = image.shape
+        bbox_thick = int(0.6 * (image_h + image_w) / 600)
+        for objectID, bbox in  self.objsBB.items():
+            c1, c2 = (bbox[1], bbox[0]), (bbox[3], bbox[2])
+            #qif velocities[objectID] > 0:
+            text = "{}: {:.2f}-km/h".format(objectID, self.objsEMARealVel[objectID])
+            
+            cv2.putText(image, text, (c1[0], np.float32(c1[1] - 2)), cv2.FONT_HERSHEY_SIMPLEX,
+                            fontScale, (0, 0, 0), bbox_thick // 2, lineType=cv2.LINE_AA)
+            #cv2.circle(image, (centroid[0], centroid[1]), 4, (255,0,0), -1)
+        return image
+
     def update(self, bboxes, frameRate):
         if len(bboxes) == 0:
             lost_ids = list(self.lost.keys())
@@ -74,11 +92,12 @@ class Tracker:
         
         new_object_locations = np.zeros((len(bboxes), 2), dtype="int")
         for i, bbox in enumerate(bboxes):
+            bbox = [bbox[1], bbox[0], bbox[3], bbox[2]]
             new_object_locations[i] = self.getLocation(bbox)
         
         if len(self.objs) == 0:
             for i in range(len(bboxes)):
-                self.addObject(new_object_locations[i])
+                self.addObject(new_object_locations[i], bboxes[i])
         else:
             objectIDs = list(self.objs.keys())
             previous_object_locations = np.array(list(self.objs.values()))
@@ -94,6 +113,7 @@ class Tracker:
                     continue
                 objectID = objectIDs[row]
                 self.objs[objectID] = new_object_locations[col]
+                self.objsBB[objectID] = bboxes[col]
                 self.objsNewestRealLoc[objectID] = homography2Dto3D(self.objs[objectID], self.projectionMat)
 
                 self.frameCount[objectID] -= 1
@@ -123,6 +143,6 @@ class Tracker:
                         self.removeObject(objectID)
             else:
                 for col in unassignedCols:
-                    self.addObject(new_object_locations[col])
+                    self.addObject(new_object_locations[col], bboxes[col])
         return self.objs, self.objsEMARealVel
 

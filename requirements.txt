@@ -7,3 +7,5 @@ tensorboard
 terminaltables
 pillow
 tqdm
+easydict
+opencv-python

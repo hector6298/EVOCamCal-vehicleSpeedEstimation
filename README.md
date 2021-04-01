@@ -40,3 +40,12 @@ Run:
 ./bin
 ```
 
+## Configuring object detectors
+Thanks to @hunglc007 for the implementation of yolov4. Download yolov4 weights from: https://drive.google.com/open?id=1cewMfusmPjYWbrnuJRuKhPMwRe_b9PaT
+
+Convert them to tensorflow usable weights:
+
+```
+python3 workflowUtils/yolov4/save_model.py --weights workflowUtils/yolov4/data/yolov4.weights --output workflowUtils/yolov4/data/checkpoints/yolov4 --input_size 512 --model yolov4
+```
+

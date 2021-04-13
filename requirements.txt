@@ -9,3 +9,6 @@ pillow
 tqdm
 easydict
 opencv-python
+umap-learn
+pickle
+joblib

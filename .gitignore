@@ -1,3 +1,4 @@
 workflowUtils/yolov3/weights/
-documents/streetVideos/
+source_material/streetVideos/
 workflowUtils/yolov4/data/
+models/

@@ -1,8 +1,42 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-
+import numba as nb
 from skimage import feature,color,transform,io
+
+def gen_cust_dist_func(kernel,parallel=True):
+
+    kernel_nb=nb.njit(kernel,fastmath=True)
+
+    def cust_dot_T(A,B):
+        assert B.shape[1]==A.shape[1]
+
+        out=np.empty((A.shape[0],B.shape[0]),dtype=np.float64)
+        for i in nb.prange(A.shape[0]):
+            for j in range(B.shape[0]):
+                out[i,j]=kernel_nb(A[i,:],B[j,:])
+        return out
+
+    if parallel==True:
+        return nb.njit(cust_dot_T,fastmath=True,parallel=True)
+    else:
+        return nb.njit(cust_dot_T,fastmath=True,parallel=False)
+
+def bb_intersection_over_union(boxA, boxB):
+
+    xA = max(boxA[0], boxB[0])
+    yA = max(boxA[1], boxB[1])
+    xB = min(boxA[2], boxB[2])
+    yB = min(boxA[3], boxB[3])
+
+    interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+
+    boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+    boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+
+    iou = interArea / float(boxAArea + boxBArea - interArea)
+
+    return iou
 
 def getTheta(line: tuple):
     p0, p1 = line

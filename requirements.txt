@@ -10,5 +10,5 @@ tqdm
 easydict
 opencv-python
 umap-learn
-pickle
-joblib
+haversine
+scikit-image

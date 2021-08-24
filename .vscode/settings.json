@@ -53,5 +53,6 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "bit": "cpp"
-    }
+    },
+    "python.pythonPath": "/bin/python3"
 }

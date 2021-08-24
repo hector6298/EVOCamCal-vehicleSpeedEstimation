@@ -1,34 +1,20 @@
+import tensorflow as tf
+tf.config.set_visible_devices([], 'GPU')
+visible_devices = tf.config.get_visible_devices()
+
 import os
 import datetime
-import torch
-import tensorflow as tf
+import random
+import colorsys
 import cv2
 import numpy as np
 
-from PIL import Image
-from torch.autograd import Variable
-
-from .yolov3.models import *
-from .yolov3.utils import *
-import torchvision.transforms as T
-
+from .yolov4.core.config import cfg
 from .yolov4.core.yolov4 import filter_boxes
 from tensorflow.python.saved_model import tag_constants
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 
-import cv2
-import random
-import colorsys
-import numpy as np
-import tensorflow as tf
-
-from .yolov4.core.config import cfg
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-config = ConfigProto()
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
 
 def rescale_boxes(boxes, current_dim, original_shape):
     """ Rescales bounding boxes to the original shape """
@@ -42,7 +28,7 @@ def rescale_boxes(boxes, current_dim, original_shape):
     return boxes
 
 class objectDetectorV4(object):
-    def __init__(self, imgSize, orgSize, weightPath, confidenceThres=0.6, IoUThres=0.7):
+    def __init__(self, imgSize, orgSize, weightPath, confidenceThres=0.4, IoUThres=0.5):
         self.imgSize = imgSize
         self.confidenceThres = confidenceThres
         self.IoUThres = IoUThres
@@ -62,6 +48,34 @@ class objectDetectorV4(object):
                 names[ID] = name.strip('\n')
         return names
 
+    def _validate_indices(self, detections):
+        
+        boxes, scores, classes, _ = detections
+
+        valid_inds = boxes[0][:,0] > 0.
+        boxes = boxes[0][valid_inds]
+        scores = scores[0][valid_inds]
+        classes = classes[0][valid_inds]
+
+        return (boxes, scores, classes, _)
+
+    def _delete_unwanted_dets(self, detections):
+        boxes, scores, classes, _ = detections
+        inds = []
+        for i in range(len(classes)):
+            if classes[i] in [2,5]:
+                inds.append(True)
+            else:
+                inds.append(False)
+        inds = np.array(inds)
+        
+        if len(classes) > 0:
+            boxes = boxes[inds]
+            scores = scores[inds]
+            classes = classes[inds]
+
+        return (boxes, scores, classes, _)
+
     def draw_bbox(self, image, bboxes, show_label=True):
         
         image_h, image_w, _ = image.shape
@@ -75,13 +89,13 @@ class objectDetectorV4(object):
 
         centroids = []
         out_boxes, out_scores, out_classes, num_boxes = bboxes
-        for i in range(num_boxes[0]):
-            if int(out_classes[0][i]) < 0 or int(out_classes[0][i]) > self.num_classes: continue
-            coor = out_boxes[0][i]
+        for i in range(len(out_classes)):
+            if int(out_classes[i]) < 0 or int(out_classes[i]) > self.num_classes: continue
+            coor = out_boxes[i]
 
             fontScale = 0.5
-            score = out_scores[0][i]
-            class_ind = int(out_classes[0][i])
+            score = out_scores[i]
+            class_ind = int(out_classes[i])
             bbox_color = colors[class_ind]
             bbox_thick = int(0.6 * (image_h + image_w) / 600)
             c1, c2 = (coor[1], coor[0]), (coor[3], coor[2])
@@ -100,12 +114,12 @@ class objectDetectorV4(object):
     def scale_detections(self, bboxes):
         out_boxes, out_scores, out_classes, num_boxes = bboxes
         image_h, image_w = self.orgSize
-        for i in range(num_boxes[0]):
-            if int(out_classes[0][i]) < 0 or int(out_classes[0][i]) > self.num_classes: continue
-            out_boxes[0][i][0] = int(out_boxes[0][i][0] * image_h)
-            out_boxes[0][i][2] = int(out_boxes[0][i][2] * image_h)
-            out_boxes[0][i][1] = int(out_boxes[0][i][1] * image_w)
-            out_boxes[0][i][3] = int(out_boxes[0][i][3] * image_w)
+        for i in range(len(out_boxes)):
+            if int(out_classes[i]) < 0 or int(out_classes[i]) > self.num_classes: continue
+            out_boxes[i][0] = int(out_boxes[i][0] * image_h)
+            out_boxes[i][2] = int(out_boxes[i][2] * image_h)
+            out_boxes[i][1] = int(out_boxes[i][1] * image_w)
+            out_boxes[i][3] = int(out_boxes[i][3] * image_w)
         bboxes = out_boxes, out_scores, out_classes, num_boxes
         return bboxes
 
@@ -129,16 +143,32 @@ class objectDetectorV4(object):
             score_threshold=self.confidenceThres
         )
 
-        pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), valid_detections.numpy()]
+        #print(boxes.numpy())
+        boxes_n = boxes.numpy()
+        scores_n = scores.numpy()
+        classes_n = classes.numpy()
+        valid_detections_n = valid_detections.numpy()
+
+        pred_bbox = [boxes_n, scores_n, classes_n, valid_detections_n]
+        pred_bbox = self._validate_indices(pred_bbox)
+        pred_bbox = self._delete_unwanted_dets(pred_bbox)
         pred_bbox = self.scale_detections(pred_bbox)
        
         return pred_bbox
 
+"""
+import torch
+from PIL import Image
+from torch.autograd import Variable
+
+from .yolov3.models import *
+from .yolov3.utils import *
+import torchvision.transforms as T
 
 class objectDetector(object):
-    """
-    Object Detector high level object using YOLOv3 from https://github.com/eriklindernoren/PyTorch-YOLOv3.git
-    """
+    
+    # Object Detector high level object using YOLOv3 from https://github.com/eriklindernoren/PyTorch-YOLOv3.git
+    
     def __init__(self, imgSize, orgSize, weightPath, modelDef, confidenceThres=0.5, IoUThres=0.2):
         self.imgSize = imgSize
         self.confidenceThres = confidenceThres
@@ -169,3 +199,4 @@ class objectDetector(object):
             #x1, y1, x2, y2, conf, confidence, class pred
             detections = rescale_boxes(detections[0], img.shape[0], self.orgSize)
         return detections
+"""

@@ -1,0 +1,11 @@
+python3 AE_fitter.py --video 1 --epochs 500
+python3 AE_fitter.py --video 2 --epochs 500
+python3 AE_fitter.py --video 5 --epochs 500
+python3 AE_fitter.py --video 6 --epochs 500
+python3 AE_fitter.py --video 7 --epochs 500
+python3 AE_fitter.py --video 9 --epochs 500
+python3 AE_fitter.py --video 10 --epochs 500
+python3 AE_fitter.py --video 11 --epochs 500
+python3 AE_fitter.py --video 12 --epochs 500
+python3 AE_fitter.py --video 13 --epochs 500
+python3 AE_fitter.py --video 14 --epochs 500

@@ -2,3 +2,4 @@ workflowUtils/yolov3/weights/
 source_material/streetVideos/
 workflowUtils/yolov4/data/
 models/
+results/*.jpg

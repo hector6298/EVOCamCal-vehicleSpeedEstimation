@@ -1,0 +1,11 @@
+python3 videoEstimatorNoYOLO.py --video 1 --metric euclidean > logs/video1.txt
+python3 videoEstimatorNoYOLO.py --video 2 --metric euclidean > logs/video2.txt
+python3 videoEstimatorNoYOLO.py --video 5 --metric euclidean > logs/video5.txt
+python3 videoEstimatorNoYOLO.py --video 6 --metric euclidean > logs/video6.txt
+python3 videoEstimatorNoYOLO.py --video 7 --metric euclidean > logs/video7.txt
+python3 videoEstimatorNoYOLO.py --video 9 --metric euclidean > logs/video9.txt
+python3 videoEstimatorNoYOLO.py --video 10 --metric euclidean > logs/video10.txt
+python3 videoEstimatorNoYOLO.py --video 11 --metric euclidean > logs/video11.txt
+python3 videoEstimatorNoYOLO.py --video 12 --metric euclidean > logs/video12.txt
+python3 videoEstimatorNoYOLO.py --video 13 --metric euclidean > logs/video13.txt
+python3 videoEstimatorNoYOLO.py --video 14 --metric euclidean > logs/video14.txt

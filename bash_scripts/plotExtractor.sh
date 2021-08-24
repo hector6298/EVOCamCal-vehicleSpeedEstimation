@@ -1,0 +1,21 @@
+python3 PlotExtractorIoU.py --video 1 --metric iou
+python3 PlotExtractorIoU.py --video 2 --metric iou
+python3 PlotExtractorIoU.py --video 5 --metric iou
+python3 PlotExtractorIoU.py --video 6 --metric iou
+python3 PlotExtractorIoU.py --video 7 --metric iou
+python3 PlotExtractorIoU.py --video 9 --metric iou
+python3 PlotExtractorIoU.py --video 11 --metric iou
+python3 PlotExtractorIoU.py --video 12 --metric iou
+python3 PlotExtractorIoU.py --video 13 --metric iou
+python3 PlotExtractorIoU.py --video 14 --metric iou
+
+python3 PlotExtractorIoU.py --video 1 --metric euclidean
+python3 PlotExtractorIoU.py --video 2 --metric euclidean
+python3 PlotExtractorIoU.py --video 5 --metric euclidean
+python3 PlotExtractorIoU.py --video 6 --metric euclidean
+python3 PlotExtractorIoU.py --video 7 --metric euclidean
+python3 PlotExtractorIoU.py --video 9 --metric euclidean
+python3 PlotExtractorIoU.py --video 11 --metric euclidean
+python3 PlotExtractorIoU.py --video 12 --metric euclidean
+python3 PlotExtractorIoU.py --video 13 --metric euclidean
+python3 PlotExtractorIoU.py --video 14 --metric euclidean

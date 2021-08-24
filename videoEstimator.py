@@ -9,6 +9,8 @@ from workflowUtils.tracking import *
 parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--video", default=1,
                     help="Index of the video")
+parser.add_argument("-m", "--metric", default='euclidean',
+                    help="metric for the tracking backend")
 args = parser.parse_args()
 
 VIDEOPATH = f"source_material/streetVideos/seattle{args.video}.mp4"
@@ -29,34 +31,36 @@ yolo = objectDetectorV4(YOLOSIZE,
                         FRAMESIZE,
                         weightPath="workflowUtils/yolov4/data/checkpoints/yolov4")
 
-tracker = Tracker(height, width, maxlost=20, 
-                  metric='iou', reducer=True,
+tracker = Tracker(maxlost=20, 
+                  distance_sigma=80,
+                  metric=args.metric, reducer=False,
                   video=args.video, params_file=PARAMFILE)
 
-i = 60*2*fps
-
-while i:
+while cap.isOpened():
     
   ret, frame = cap.read()
+
+  if not ret:
+    print("Can't receive frame (stream end?). Exiting ...")
+    break
+
   img_in = cv2.resize(frame, YOLOSIZE)
   img_in = cv2.cvtColor(img_in, cv2.COLOR_BGR2RGB)
 
   detections = yolo.detect(img_in)
-  out_boxes, _, _, num_boxes = detections
-  bboxes = out_boxes[0][out_boxes[0][:,0] > 0.]
-  print(bboxes)
+  bboxes, _, _, _ = detections
+  
+  #print(bboxes)
   image = yolo.draw_bbox(frame, detections)
   
-  if num_boxes[0] > 0 and out_boxes[0] is not None:
+ 
+  if len(bboxes) > 0:
 
-    objects, velocities = tracker.update(frame, bboxes, fps)
+    objects, velocities = tracker.update( bboxes, fps)
     image = tracker.write_velocities(image)
    
   
   cv2.imshow('output', image)
-
-  i -= 1
-  print(i)
 
   if cv2.waitKey(1) & 0xFF == ord('q'):
     break
@@ -64,9 +68,22 @@ while i:
 cap.release()
 cv2.destroyAllWindows()
 
-with open('results/vel_history/velocities7.json', 'w') as fp:
-  json.dump(tracker.objVelHist , fp)
 
-with open('results/bb_history/bboxes7.json', 'w') as fp:
-  json.dump(tracker.bbHist , fp)
 
+# Save all the records of velocities of all vehicles
+print(tracker.objsVelHist.keys())
+dump(tracker.objsVelHist, 
+    f'results/velocities/velocities/{args.metric}/{args.video}')
+
+# save the records of all diagonal bounding box lengths for all vehicles
+#print(type(tracker.objsBBdist), type(tracker.objsVelHist))
+print(tracker.objsBBdist.keys())
+dump(str(tracker.objsBBdist),
+    f'results/bbox_distances/bboxes/{args.metric}/{args.video}')
+
+#print(tracker.velocitiesInLine)
+# Save all the velocities captured in the virtual line
+dump(tracker.velocitiesInLine, 
+     f'results/spot_velocities/spot_velocities{args.metric}/{args.video}')
+
+print("Success!!")

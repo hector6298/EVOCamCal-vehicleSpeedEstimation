@@ -109,32 +109,32 @@ void CCamCal::process(void)
 
 bool compDistError(PtObj oCamParam1, PtObj oCamParam2)
 {
-	return (oCamParam1.getReprojErr() < oCamParam2.getReprojErr());
+	return (oCamParam1.getProjErr() < oCamParam2.getProjErr());
 }
 
 std::vector<cv::Point2f> CCamCal::initPts(PtObj sPtParamsObj){
-	double pt2dx, pt2dy, pt3dx, pt3dy;
-	std::vector<cv::Point2f> randPt2dVec;
+	double pt3dx, pt3dy, pt3dx, pt3dy;
+	std::vector<cv::Point2f> randPt3dVec;
 
 	for(int i = 0; i < sPtParamsObj.pt2dVecMin.size(); i++){
 		
-		pt2dx = get_rand_num(sPtParamsObj.pt2dVecMin[i].x, sPtParamsObj.pt2dVecMax[i].x, rand());
-		pt2dy = get_rand_num(sPtParamsObj.pt2dVecMin[i].y, sPtParamsObj.pt2dVecMax[i].y, rand());
+		pt3dx = get_rand_num(sPtParamsObj.pt3dVecMin[i].x, sPtParamsObj.pt3dVecMax[i].x, rand());
+		pt3dy = get_rand_num(sPtParamsObj.pt3dVecMin[i].y, sPtParamsObj.pt3dVecMax[i].y, rand());
 		
-		randPt2dVec.push_back({pt2dx, pt2dy});
+		randPt2dVec.push_back({pt3dx, pt3dy});
 	}
-	return randPt2dVec;
+	return randPt3dVec;
 }
 
-PtObj CCamCal::initEdaParamRng(std::vector<cv::Point2f> m_vo2dPt){
+PtObj CCamCal::initEdaParamRng(std::vector<cv::Point2f> m_vo3dPt){
 	PtObj sParamRng;
 
 	if(m_vo3dPt.size() != m_vo2dPt.size())
 		std::cout << "Sizes should be equal" << std::endl;
-	for(int i = 0; i < m_vo2dPt.size(); i++){
+	for(int i = 0; i < m_vo3dPt.size(); i++){
 
-		sParamRng.pt2dVecMax.push_back({m_vo2dPt[i].x  + m_oImgFrm.cols*EDA_RNG_2DPT, m_vo2dPt[i].y  + m_oImgFrm.rows*EDA_RNG_2DPT});
-		sParamRng.pt2dVecMin.push_back({m_vo2dPt[i].x  - m_oImgFrm.cols*EDA_RNG_2DPT, m_vo2dPt[i].y  - m_oImgFrm.rows*EDA_RNG_2DPT});
+		sParamRng.pt3dVecMax.push_back({m_vo3dPt[i].x  + m_oImgFrm.cols*EDA_RNG_2DPT, m_vo3dPt[i].y  + m_oImgFrm.rows*EDA_RNG_2DPT});
+		sParamRng.pt3dVecMin.push_back({m_vo3dPt[i].x  - m_oImgFrm.cols*EDA_RNG_2DPT, m_vo3dPt[i].y  - m_oImgFrm.rows*EDA_RNG_2DPT});
 		
 	}
 	sParamRng.setVectorReady();
@@ -153,15 +153,15 @@ PtObj CCamCal::estEdaParamRng(std::vector<PtObj>* pvoPtParams){
 	for (ivoPtParams = pvoPtParams->begin(); ivoPtParams != pvoPtParams->end(); ivoPtParams++){
 		iParam = 0;
 		for(int i = 0; i < ivoPtParams->getSize(); i++){
-			afParamData[iParam*nCamParamNum + iCamParam] = ivoPtParams->getRand2dPt(i).x; afParamMean[2*i+0] += afParamData[iParam*nCamParamNum + iCamParam]; iParam++;
-			afParamData[iParam*nCamParamNum + iCamParam] = ivoPtParams->getRand2dPt(i).y; afParamMean[2*i+1] += afParamData[iParam*nCamParamNum + iCamParam]; iParam++;
+			afParamData[iParam*nCamParamNum + iCamParam] = ivoPtParams->getRand3dPt(i).x; afParamMean[2*i+0] += afParamData[iParam*nCamParamNum + iCamParam]; iParam++;
+			afParamData[iParam*nCamParamNum + iCamParam] = ivoPtParams->getRand3dPt(i).y; afParamMean[2*i+1] += afParamData[iParam*nCamParamNum + iCamParam]; iParam++;
 		}
 		iCamParam++;
 	}
 	for (iParam = 0; iParam < nParamNum; iParam++)
 		afParamMean[iParam] /= nCamParamNum;
 
-	double pt2dxmax, pt2dymax, pt2dxmin, pt2dymin;
+	double pt3dxmax, pt3dymax, pt3dxmin, pt3dymin;
 	for(int i = 0; i < ivoPtParams->getSize(); i++){
 		// 2dpt x
 		iParam = 0 + 2*i;
@@ -171,8 +171,8 @@ PtObj CCamCal::estEdaParamRng(std::vector<PtObj>* pvoPtParams){
 			(afParamData[(iParam * nCamParamNum) + iCamParam] - afParamMean[iParam]);
 		}
 		fParamVar /= nCamParamNum;
-		pt2dxmax = afParamMean[iParam] + std::sqrt(fParamVar);
-		pt2dxmin = afParamMean[iParam] - std::sqrt(fParamVar);
+		pt3dxmax = afParamMean[iParam] + std::sqrt(fParamVar);
+		pt3dxmin = afParamMean[iParam] - std::sqrt(fParamVar);
 		// 2dpt y
 		iParam = 1 + 2*i;
 		fParamVar = 0.0f;
@@ -181,11 +181,11 @@ PtObj CCamCal::estEdaParamRng(std::vector<PtObj>* pvoPtParams){
 			(afParamData[(iParam * nCamParamNum) + iCamParam] - afParamMean[iParam]);
 		}
 		fParamVar /= nCamParamNum;
-		pt2dymax = afParamMean[iParam] + std::sqrt(fParamVar);
-		pt2dymin = afParamMean[iParam] - std::sqrt(fParamVar);
+		pt3dymax = afParamMean[iParam] + std::sqrt(fParamVar);
+		pt3dymin = afParamMean[iParam] - std::sqrt(fParamVar);
 
-		sParamRng.pt2dVecMin.push_back({pt2dxmin, pt2dymin});
-		sParamRng.pt2dVecMax.push_back({pt2dxmax, pt2dymax});
+		sParamRng.pt3dVecMin.push_back({pt3dxmin, pt3dymin});
+		sParamRng.pt3dVecMax.push_back({pt3dxmax, pt3dymax});
 
 	}
 	sParamRng.setVectorReady();
@@ -201,6 +201,7 @@ void CCamCal::calCamEdaOpt(void){
     bool bProc25, bProc50, bProc75;
 	
 	double fReprojErr, fReprojErrMean, fReprojErrMeanPrev, fReprojErrStd;
+	double projErr, projErrMean, projErrMeanPrev, projErrStd;
 	double dReprojErr, dReprojErrMean, dReprojErrMeanPrev, dReprojErrStd;
 	
 	
@@ -210,7 +211,7 @@ void CCamCal::calCamEdaOpt(void){
 	PtObj sPtParamsObj;
 	//initialize range of points
 	
-	sPtParamsObj = initEdaParamRng(m_vo2dPt);
+	sPtParamsObj = initEdaParamRng(m_vo3dPt);
 	
 	// EDA optimization
 	if(nN >= nR)
@@ -220,7 +221,7 @@ void CCamCal::calCamEdaOpt(void){
 	
 	for(int iR = 0; iR < nR; iR++){
 		
-		sPtParamsObj.randPt2dVec = initPts(sPtParamsObj);
+		sPtParamsObj.randPt3dVec = initPts(sPtParamsObj);
 		voPtParams.push_back(sPtParamsObj);
 	}
 
@@ -232,35 +233,39 @@ void CCamCal::calCamEdaOpt(void){
 		bProc50 = false;
 		bProc75 = false;
 		fReprojErrMean = 0.0;
+		projErrMean = 0.0;
 		fReprojErrStd = 0.0;
+		projErrStd = 0.0;
 
 		for(ivoPtParams = voPtParams.begin(); ivoPtParams != voPtParams.end(); ivoPtParams++){
-			std::vector<::Point2f> curr2dPtSet;
-			for( int i = 0; i < m_vo2dPt.size(); i++){
-				curr2dPtSet.push_back(ivoPtParams->getRand2dPt(i));
+			std::vector<::Point2f> curr3dPtSet;
+			for( int i = 0; i < m_vo3dPt.size(); i++){
+				curr3dPtSet.push_back(ivoPtParams->getRand3dPt(i));
 			}
 			// compute homography matrix
 			if (-1 == m_oCfg.getCalTyp()){
 				// run all calibration types
 				
-				runAllCalTyp(m_vo3dPt, curr2dPtSet);
+				runAllCalTyp(curr3dPtSet, m_vo2dPt);
 			}
 			else{
 
-				m_oHomoMat = cv::findHomography(m_vo3dPt, curr2dPtSet, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
-				m_fReprojErr = calcReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "2D3D");
-				m_projErr = calcReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "3D2D");
+				m_oHomoMat = cv::findHomography(curr3dPtSet, m_vo2dPt, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
+				m_fReprojErr = calcReprojErr(curr3dPtSet, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "2D3D");
+				m_projErr = calcReprojErr(curr3dPtSet, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "3D2D");
 			}
-			m_vo2dPt = curr2dPtSet;
+			m_vo3dPt = curr3dPtSet;
 			ivoPtParams->setHomoMat(m_oHomoMat);
-			dReprojErr = calcDistReprojErr(m_vo3dPt, curr2dPtSet, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
+			dReprojErr = calcDistReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
 
 			dReprojErr *= 1000;
 
 			ivoPtParams->setReprojErr(m_fReprojErr);
+			ivoPtParams->setProjErr(m_projErr);
 			ivoPtParams->setDistReprojErr(dReprojErr);
 
 			fReprojErrMean += m_fReprojErr;
+			projErrMean += m_projErr;
 			dReprojErrMean += dReprojErr;
 			iProc++;
 
@@ -270,21 +275,27 @@ void CCamCal::calCamEdaOpt(void){
 		}
 
 		fReprojErrMean /= nR;
+		projErrMean /= nR;
 		dReprojErrMean /= nR; 
 
 		for(ivoPtParams = voPtParams.begin(); ivoPtParams != voPtParams.end(); ivoPtParams++){
 			double fReprojErr = ivoPtParams->getReprojErr();
+			double projErr = ivoPtParams->getProjErr();
 			double dReprojErr = ivoPtParams->getDistReprojErr();
 			fReprojErrStd += (fReprojErr - fReprojErrMean) * (fReprojErr - fReprojErrMean);
+			projErrStd += (projErr - projErrMean) * (projErr - projErrMean);
 			dReprojErrStd += (dReprojErr - dReprojErrMean) * (dReprojErr - dReprojErrMean);
 		}
 		fReprojErrStd = std::sqrt(fReprojErrStd / nR);
+		projErrStd = std::sqrt(projErrStd / nR);
 		dReprojErrStd = std::sqrt(dReprojErrStd / nR);
 
 		std::printf("100%%!\n");
-		std::printf("current error mean = %f\n", fReprojErrMean);
+		std::printf("current reprojection error mean = %f\n", fReprojErrMean);
+		std::printf("current projection error mean = %f\n", projErrMean);
 		std::printf("current distances error mean = %f\n", dReprojErrMean);
-		std::printf("current error standard deviation = %f\n", fReprojErrStd);
+		std::printf("current reprojection error standard deviation = %f\n", fReprojErrStd);
+		std::printf("current projection error standard deviation = %f\n", projErrStd);
 		std::printf("current distances error standard deviation = %f\n", dReprojErrStd);
 		
 		if(!fReprojErrMean || !dReprojErrMean){
@@ -292,28 +303,32 @@ void CCamCal::calCamEdaOpt(void){
 			break;
 		}
 
-		//check if generation needs to stop
-
-		if((0 < iIter) && ((dReprojErrMeanPrev * EDA_REPROJ_ERR_THLD) > std::abs(fReprojErrMean - fReprojErrMeanPrev))){
-			std::printf("Reprojection error is small enough. Stop generation.\n");
-			break;
-		}
 
 		fReprojErrMeanPrev = fReprojErrMean;
+		projErrMeanPrev = projErrMean;
 		dReprojErrMeanPrev = dReprojErrMean;
 
 		std::stable_sort(voPtParams.begin(), voPtParams.end(), compDistError);
 
 		voPtParams.erase(voPtParams.begin() + nN, voPtParams.end());
 
+		//check if generation needs to stop
+
+		if((0 < iIter) && ((projErrMeanPrev * EDA_REPROJ_ERR_THLD) > std::abs(projErrMean - projErrMeanPrev))){
+			std::printf("Projection error is small enough. Stop generation.\n");
+			break;
+		}
+
 		sPtParamsObj = estEdaParamRng(&voPtParams);
 
 		for(int iR = 0; iR < nR; iR++){
-			sPtParamsObj.randPt2dVec = initPts(sPtParamsObj);
+			sPtParamsObj.randPt3dVec = initPts(sPtParamsObj);
 			voPtParams.push_back(sPtParamsObj);
 		}
 		iIter++;
 	}
+
+	m_vo3dPt = voPtParams[0].randPt3dVec;
 
 	if(nIterNum <= iIter){
 		printf("Exit: Results can not converge.\n");

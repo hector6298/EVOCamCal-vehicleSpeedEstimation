@@ -6,15 +6,16 @@
 //class for image points container
 class PtObj{
 public:
-	std::vector<cv::Point2f> pt2dVecMin;
-	std::vector<cv::Point2f> pt2dVecMax;
-	std::vector<cv::Point2f> randPt2dVec;
+	std::vector<cv::Point2f> pt3dVecMin;
+	std::vector<cv::Point2f> pt3dVecMax;
+	std::vector<cv::Point2f> randPt3dVec;
 
 	bool isVectorReady = false;
 
 	cv::Mat HomoMat;
 
 	double ReprojErr;
+	double ProjErr;
 	double dReprojErr;
 
 	int getSize(){
@@ -23,14 +24,16 @@ public:
 		else 
 			return -1;
 	}
-	cv::Point2f getRand2dPt(int i){return randPt2dVec[i];}
+	cv::Point2f getRand3dPt(int i){return randPt3dVec[i];}
 	double getReprojErr(){return ReprojErr;}
+	double getProjErr(){return ProjErr;}
 	double getDistReprojErr(){return dReprojErr;}
 	cv::Mat getHomoMat(){return HomoMat;}
 
 	void setVectorReady(){isVectorReady = true;}
 	void setHomoMat(cv::Mat mat){HomoMat= mat;}
 	void setReprojErr(double reprojErr){ReprojErr=reprojErr;}
+	void setProjErr(double projErr){ProjErr=projErr;}
 	void setDistReprojErr(double distReprojErr){dReprojErr=distReprojErr;}
 
 	void initPts();
@@ -66,7 +69,7 @@ private:
 	//! plots a display grid on the ground plane
 	void pltDispGrd(void);
 	//
-	PtObj initEdaParamRng(std::vector<cv::Point2f> m_vo2dPt);
+	PtObj initEdaParamRng(std::vector<cv::Point2f> m_vo3dPt);
 	//
 	void calCamEdaOpt(void);
 	//

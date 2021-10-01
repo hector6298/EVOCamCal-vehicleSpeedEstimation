@@ -666,11 +666,13 @@ void CCamCal::pltDispGrd(void)
 			12, cv::Scalar(0, 0, 255), 1, LINE_AA);  // draw the circle
 	}
 
+	/*
 	// display plotted image
 	cv::namedWindow("3D grid on the ground plane", WINDOW_NORMAL);
 	cv::imshow("3D grid on the ground plane", oImgPlt);
 	cv::waitKey(0);
 	cv::destroyAllWindows();
+	*/
 
 	// save plotted image
 	if (m_oCfg.getOutCalDispFlg())

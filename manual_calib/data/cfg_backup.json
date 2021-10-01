@@ -1,8 +1,8 @@
 {
   "genInfo": {
-    "inFrmPth": "/home/hector/Documents/tesis/source_material/imgs/seattle1.jpg",
-    "outCamMatPth": "./data/EDA/calibration6.txt",
-    "outCalDispPth": "./data/EDA/calibration6.jpg",
+    "inFrmPth": "/home/hector/Documents/tesis/source_material/imgs/seattle13.jpg",
+    "outCamMatPth": "./data/EDA/calibration13.txt",
+    "outCalDispPth": "./data/EDA/calibration13.jpg",
     "outCalDispFlg": 1,
     "rszFrmHei": -1
   },
@@ -11,62 +11,38 @@
     "edaOptFlg": 1,
     "cal2dPtLs": [
       [
-        306,
-        409
+        703,
+        928
       ],
       [
-        661,
-        392
+        827,
+        350
       ],
       [
-        902,
-        397
+        958,
+        346
       ],
       [
-        586,
-        249
-      ],
-      [
-        299,
-        303
-      ],
-      [
-        33,
-        642
-      ],
-      [
-        1246,
-        496
+        1727,
+        884
       ]
     ],
     "cal3dPtLs": [
       [
-        47.59256441408,
-        -122.33436181032958
+        47.60621664771064,
+        -122.3377667353956
       ],
       [
-        47.592560796326026,
-        -122.33419149006333
+        47.60772011940337,
+        -122.33912694943842
       ],
       [
-        47.592560796326026,
-        -122.33407481397545
+        47.60778087117011,
+        -122.3389499209841
       ],
       [
-        47.59321696238158,
-        -122.33400507655489
-      ],
-      [
-        47.593258566015834,
-        -122.33438192690778
-      ],
-      [
-        47.592411111541956,
-        -122.33438595022706
-      ],
-      [
-        47.592445480293186,
-        -122.33404262748566
+        47.60629237407901,
+        -122.33759043941919
       ]
     ],
     "calTyp": 0,
@@ -88,7 +64,6 @@
     "calPrinPt": [
       -1,
       -1
-    ],
-    "inFrmPth": "/home/hector/Documents/tesis/source_material/imgs/seattle6.jpg"
+    ]
   }
 }

@@ -13,17 +13,19 @@ args = parser.parse_args()
 
 VIDEOPATH = f"source_material/streetVideos/seattle{args.video}.mp4"
 
-
+# Initialize video object
 cap = cv2.VideoCapture(VIDEOPATH)
 if (cap.isOpened()== False): 
   print("Error opening video stream or file")
 
+# Image properties
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 YOLOSIZE = (512,512)
 FRAMESIZE = (height, width)
 
+# Initialize object detector object
 yolo = objectDetectorV4(YOLOSIZE,
                         FRAMESIZE,
                         weightPath="workflowUtils/yolov4/data/checkpoints/yolov4")
@@ -45,8 +47,9 @@ while cap.isOpened():
   detections = yolo.detect(img_in)
   
   bboxes, _, _, _ = detections
-  if len(bboxes) > 0:
-    detection_container.append(detections)
+
+  # HERE: Store the detections
+  detection_container.append(detections)
 
   image = yolo.draw_bbox(frame, detections)
   
@@ -55,7 +58,9 @@ while cap.isOpened():
   if cv2.waitKey(1) & 0xFF == ord('q'):
     break
 
+# Release OpenCV resources
 cap.release()
 cv2.destroyAllWindows()
 
+# Save all detections on pickle files
 dump(detection_container, f"results/detections/video{args.video}")

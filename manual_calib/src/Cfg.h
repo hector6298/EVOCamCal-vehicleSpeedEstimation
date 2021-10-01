@@ -23,8 +23,8 @@ public:
 	inline bool getOutCalDispFlg(void) { return m_bOutCalDispFlg; }
 	inline int getRszFrmHei(void) { return m_nRszFrmHei; }
 	inline bool getCalSel2dPtFlg(void) { return m_bCalSel2dPtFlg; }
-	inline std::vector<cv::Point2f> getCal2dPtLs(void) { return m_voCal2dPt; }
-	inline std::vector<cv::Point2f> getCal3dPtLs(void) { return m_voCal3dPt; }
+	inline std::vector<cv::Point2d> getCal2dPtLs(void) { return m_voCal2dPt; }
+	inline std::vector<cv::Point2d> getCal3dPtLs(void) { return m_voCal3dPt; }
 	inline int getCalTyp(void) { return m_nCalTyp; }
 	inline double getCalRansacReprojThld(void) { return m_fCalRansacReprojThld; }
 	inline cv::Size getCalDispGrdDim(void) { return m_oCalDispGrdDim; }
@@ -49,7 +49,7 @@ private:
 	//! reads vector of float number
 	std::vector<float> rdFltVec(std::string strCfg, int nParamPos);
 	//! reads vector of 2D points
-	std::vector<cv::Point2f> rdVec2dPt(std::string strCfg, int nParamPos);
+	std::vector<cv::Point2d> rdVec2dPt(std::string strCfg, int nParamPos);
 
 	//! path of input video frame
 	char m_acInFrmPth[256];
@@ -64,9 +64,9 @@ private:
 	//! flag of selecting 2D points on the frame image
 	bool m_bCalSel2dPtFlg;
 	//! input sequence of 2D points on the ground plane, necessary when m_bCalSel2dPtFlg == false
-	std::vector<cv::Point2f> m_voCal2dPt;
+	std::vector<cv::Point2d> m_voCal2dPt;
 	//! input sequence of 3D points on the ground plane
-	std::vector<cv::Point2f> m_voCal3dPt;
+	std::vector<cv::Point2d> m_voCal3dPt;
 	//! method used to computed the camera matrix: 0 - a regular method using all the points; 4 - Least-Median robust method; 8 - RANSAC-based robust method; -1 - Optimum method with minimum reprojection error
 	int m_nCalTyp;
 	//! maximum allowed reprojection error to treat a point pair as an inlier, necessary when m_nCalTyp == 8

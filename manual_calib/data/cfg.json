@@ -1,67 +1,102 @@
 {
-  // general information
   "genInfo": {
-    // path of input video frame
-    "inFrmPth": "/home/hector/titulacion_code_refined/documents/imgs/seattle14.jpg",
-    // path of output text file of camera matrix
-    "outCamMatPth": "./data/RANSAC/calibration14.txt",
-    // path of output display image of camera calibration, necessary when outCalDispFlg = 1
-    "outCalDispPth": "./data/RANSAC/calibration14.jpg",
-    // flag of output display image of camera calibration
+    "inFrmPth": "/home/hector/Documents/tesis/source_material/imgs/seattle1.jpg",
+    "outCamMatPth": "./data/EDA/calibration1.txt",
+    "outCalDispPth": "./data/EDA/calibration1.jpg",
     "outCalDispFlg": 1,
-    // resized video frame height (negative: original size)
     "rszFrmHei": -1
   },
-  // camera calibration
   "camCal": {
-    // flag of selecting 2D points on the frame image
     "calSel2dPtFlg": 0,
-    // flag to turn on EDA optmimization
-    "edaOptFlg" : 0,
-    // input sequence of 2D points on the ground plane, necessary when calSel2dPtFlg = 0
+    "edaOptFlg": 1,
     "cal2dPtLs": [
-      [ 239, 427 ],
-      [ 365, 388 ],
-      [ 116, 244 ],
-      [ 164, 201 ],
-      [ 458, 269 ],
-      [ 358, 189 ],
-      [ 229, 413 ],
-      [ 268, 168 ]
+      [
+        404,
+        461
+      ],
+      [
+        656,
+        211
+      ],
+      [
+        846,
+        219
+      ],
+      [
+        1108,
+        500
+      ],
+      [
+        777,
+        346
+      ],
+      [
+        770,
+        274
+      ],
+      [
+        712,
+        147
+      ],
+      [
+        766,
+        148
+      ]
     ],
-    // input sequence of 3D points on the ground plane
     "cal3dPtLs": [
       [
-        47.61844806004535,
-        -122.3342194611766
+        47.60451460509246,
+        -122.33465669797755
       ],
       [
-        47.617938658609724,
-        -122.33420806178592
+        47.605041769652324,
+        -122.33515424776157
       ],
       [
-        47.618093694353036,
-        -122.33444074340593
+        47.60511320320508,
+        -122.33497588086858
       ],
       [
-        47.61844896403636,
-        -122.33441861518564
+        47.6045815182115,
+        -122.33449174212916
+      ],
+      [
+        47.6046638031492,
+        -122.33466340350564
+      ],
+      [
+        47.60479582046593,
+        -122.33478276180247
+      ],
+      [
+        47.60575971763516,
+        -122.33579261347401
+      ],
+      [
+        47.60580538024194,
+        -122.33564643308891
       ]
-
     ],
-    // method used to computed the camera matrix: 0 - a regular method using all the points; 4 - Least-Median robust method; 8 - RANSAC-based robust method; -1 - Optimum method with minimum reprojection error
     "calTyp": 0,
-    // maximum allowed reprojection error to treat a point pair as an inlier, necessary when calTyp = 8
     "calRansacReprojThld": 100.0,
-    // dimension of the grid on the ground plane to display
-    "calDispGrdDim": [ 10, 10 ],
-    // flag of camera undistortion (if 1, require initial intrinsic camera parameters)
+    "calDispGrdDim": [
+      10,
+      10
+    ],
     "calDistFlg": 0,
-    // input distortion coefficients, necessary when calDistFlg = 1
-    "calDistCoeff": [ 0.0, 0.0, 0.0, 0.0 ],
-    // focal length(s) of the camera intrinsic matrix, necessary when calDistFlg = 1
-    "calFocLen": [ -1 ],
-    // principal point of the camera intrinsic matrix, necessary when calDistFlg = 1
-    "calPrinPt": [ -1, -1 ]
+    "calDistCoeff": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "calFocLen": [
+      -1
+    ],
+    "calPrinPt": [
+      -1,
+      -1
+    ],
+    "inFrmPth": "/home/hector/Documents/tesis/source_material/imgs/seattle1.jpg"
   }
 }

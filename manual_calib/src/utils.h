@@ -21,17 +21,17 @@
 
 
 //! define the initial population of EDA (default: 20000)
-#define EDA_INIT_POP (1000000)
+#define EDA_INIT_POP (20000)
 //! define the selected population of EDA (default: 20)
-#define EDA_SEL_POP (10000)
+#define EDA_SEL_POP (100)
 //! define the number of iterations of EDA (default: 100)
-#define EDA_ITER_NUM (1000)
+#define EDA_ITER_NUM (20)
 //! define the threshold of ratio of reprojection errors between iterations (default: 0.10)
 #define EDA_REPROJ_ERR_THLD (0.0001)
 //! defines range for 2D point variation 
-#define EDA_RNG_2DPT (0.005)
+#define EDA_RNG_2DPT (0.1)
 //! defines range for 3D point variation
-#define EDA_RNG_3DPT (0.005)
+#define EDA_RNG_3DPT (0.1)
 
 static double rand2(long idum)
 {
@@ -71,14 +71,16 @@ static double rand2(long idum)
 }
 
 //! generates a random numberv
-static double get_rand_num(float max, float min, long seed)
+static double get_rand_num(double max, double min, long seed)
 {
-	int rand = rand2(seed);
-	int duration = max - min;
-	return min + rand*duration;
+	//int rand = std::rand();
+	// int duration = max - min;
+    double num = min + static_cast <float> (std::rand()) /( static_cast <float> (RAND_MAX/(max-min)));
+    //std::cout << num << std::endl;
+	return num;
 }
 
-static double haversine_distance(cv::Point2f pt3d1, cv::Point2f pt3d2){
+static double haversine_distance(cv::Point2d pt3d1, cv::Point2d pt3d2){
     // distance between latitudes 
     // and longitudes 
     double lat1 = pt3d1.y, lat2 = pt3d2.y;
@@ -102,11 +104,11 @@ static double haversine_distance(cv::Point2f pt3d1, cv::Point2f pt3d2){
     return rad * c; 
 } 
 
-static std::vector<std::vector<cv::Point2f>> gen_pairs(std::vector<cv::Point2f> pts){
-    std::vector<std::vector<cv::Point2f>> result;
+static std::vector<std::vector<cv::Point2d>> gen_pairs(std::vector<cv::Point2d> pts){
+    std::vector<std::vector<cv::Point2d>> result;
     for(int i = 0; i < pts.size(); i++){
         for(int j = i+1; j < pts.size(); j++){
-            std::vector<cv::Point2f> pair;
+            std::vector<cv::Point2d> pair;
             pair.push_back(pts[i]);
             pair.push_back(pts[j]);
             result.push_back(pair);
@@ -115,7 +117,7 @@ static std::vector<std::vector<cv::Point2f>> gen_pairs(std::vector<cv::Point2f> 
     return result;
 }
 
-static cv::Point2f backproj2D3D(cv::Point2f pt2d, cv::Mat homoMat){
+static cv::Point2d backproj2D3D(cv::Point2d pt2d, cv::Mat homoMat){
     cv::Mat homoPt2d(3,1, CV_64F);
     cv::Mat hh(3,1, CV_64F);
     homoPt2d.at<double>(0,0) = pt2d.x;
@@ -125,23 +127,23 @@ static cv::Point2f backproj2D3D(cv::Point2f pt2d, cv::Mat homoMat){
     cv::Mat invMat = homoMat.inv();
     hh = invMat * homoPt2d;
     
-    cv::Point2f pt3d;
+    cv::Point2d pt3d;
     pt3d.x =  (hh.at<double>(0,0) / hh.at<double>(2,0));
     pt3d.y =  (hh.at<double>(1,0) / hh.at<double>(2,0));
 
     return pt3d;
 }
 
-static cv::Point2f proj3D2D(cv::Point2f pt3d, cv::Mat homoMat){
+static cv::Point2d proj3D2D(cv::Point2d pt3d, cv::Mat homoMat){
     cv::Mat o3dPtMat(3, 1, CV_64F);
     cv::Mat o2dPtMat(3, 1, CV_64F);
-    cv::Point2f o2dPt;
+    cv::Point2d o2dPt;
 
     o3dPtMat.at<double>(0, 0) = pt3d.x;
     o3dPtMat.at<double>(1, 0) = pt3d.y;
     o3dPtMat.at<double>(2, 0) = 1;
     o2dPtMat = homoMat * o3dPtMat;
-    o2dPt = cv::Point2f((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0)));
+    o2dPt = cv::Point2d((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0)));
 
     return o2dPt;
 }

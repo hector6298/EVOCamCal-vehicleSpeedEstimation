@@ -11,8 +11,8 @@ CCfg::CCfg()
 	m_bOutCalDispFlg = false;
 	m_nRszFrmHei = -1;
 	m_bCalSel2dPtFlg = true;
-	std::vector<cv::Point2f>().swap(m_voCal2dPt);
-	std::vector<cv::Point2f>().swap(m_voCal3dPt);
+	std::vector<cv::Point2d>().swap(m_voCal2dPt);
+	std::vector<cv::Point2d>().swap(m_voCal3dPt);
 	m_nCalTyp = 0;
 	m_fCalRansacReprojThld = 3.0;
 	m_oCalDispGrdDim = cv::Size(10, 10);
@@ -226,10 +226,10 @@ cv::Size CCfg::rdSz(std::string strCfg, int nParamPos)
 	return oSz;
 }
 
-std::vector<cv::Point2f> CCfg::rdVec2dPt(std::string strCfg, int nParamPos)
+std::vector<cv::Point2d> CCfg::rdVec2dPt(std::string strCfg, int nParamPos)
 {
 	int nValPos, nValLen, nValEnd, nXPos = nParamPos, nXLen, nYPos, nYLen;
-	std::vector<cv::Point2f> vo2dPt;
+	std::vector<cv::Point2d> vo2dPt;
 
 	nValPos = strCfg.find(":", (nParamPos + 1)) + 1;
 	nValEnd = strCfg.find("]]", (nValPos + 1));
@@ -240,7 +240,7 @@ std::vector<cv::Point2f> CCfg::rdVec2dPt(std::string strCfg, int nParamPos)
 		nXLen = strCfg.find(",", (nXPos + 1)) - nXPos;
 		nYPos = nXPos + nXLen + 1;
 		nYLen = strCfg.find("]", (nYPos + 1)) - nYPos;
-		vo2dPt.push_back(cv::Point2f(std::atof(strCfg.substr(nXPos, nXLen).c_str()), std::atof(strCfg.substr(nYPos, nYLen).c_str())));
+		vo2dPt.push_back(cv::Point2d(std::atof(strCfg.substr(nXPos, nXLen).c_str()), std::atof(strCfg.substr(nYPos, nYLen).c_str())));
 		nValPos = nYPos + nYLen + 1;
 	}
 

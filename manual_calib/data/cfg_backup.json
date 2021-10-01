@@ -1,0 +1,94 @@
+{
+  "genInfo": {
+    "inFrmPth": "/home/hector/Documents/tesis/source_material/imgs/seattle1.jpg",
+    "outCamMatPth": "./data/EDA/calibration6.txt",
+    "outCalDispPth": "./data/EDA/calibration6.jpg",
+    "outCalDispFlg": 1,
+    "rszFrmHei": -1
+  },
+  "camCal": {
+    "calSel2dPtFlg": 0,
+    "edaOptFlg": 1,
+    "cal2dPtLs": [
+      [
+        306,
+        409
+      ],
+      [
+        661,
+        392
+      ],
+      [
+        902,
+        397
+      ],
+      [
+        586,
+        249
+      ],
+      [
+        299,
+        303
+      ],
+      [
+        33,
+        642
+      ],
+      [
+        1246,
+        496
+      ]
+    ],
+    "cal3dPtLs": [
+      [
+        47.59256441408,
+        -122.33436181032958
+      ],
+      [
+        47.592560796326026,
+        -122.33419149006333
+      ],
+      [
+        47.592560796326026,
+        -122.33407481397545
+      ],
+      [
+        47.59321696238158,
+        -122.33400507655489
+      ],
+      [
+        47.593258566015834,
+        -122.33438192690778
+      ],
+      [
+        47.592411111541956,
+        -122.33438595022706
+      ],
+      [
+        47.592445480293186,
+        -122.33404262748566
+      ]
+    ],
+    "calTyp": 0,
+    "calRansacReprojThld": 100.0,
+    "calDispGrdDim": [
+      10,
+      10
+    ],
+    "calDistFlg": 0,
+    "calDistCoeff": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "calFocLen": [
+      -1
+    ],
+    "calPrinPt": [
+      -1,
+      -1
+    ],
+    "inFrmPth": "/home/hector/Documents/tesis/source_material/imgs/seattle6.jpg"
+  }
+}

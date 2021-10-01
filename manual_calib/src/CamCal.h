@@ -1,14 +1,15 @@
 #pragma once
 
+
 #include <opencv2/calib3d/calib3d.hpp>
 #include "Cfg.h"
 
 //class for image points container
 class PtObj{
 public:
-	std::vector<cv::Point2f> pt3dVecMin;
-	std::vector<cv::Point2f> pt3dVecMax;
-	std::vector<cv::Point2f> randPt3dVec;
+	std::vector<cv::Point2d> pt3dVecMin;
+	std::vector<cv::Point2d> pt3dVecMax;
+	std::vector<cv::Point2d> randPt3dVec;
 
 	bool isVectorReady = false;
 
@@ -20,11 +21,11 @@ public:
 
 	int getSize(){
 		if(isVectorReady) 
-			return pt2dVecMin.size();
+			return pt3dVecMin.size();
 		else 
 			return -1;
 	}
-	cv::Point2f getRand3dPt(int i){return randPt3dVec[i];}
+	cv::Point2d getRand3dPt(int i){return randPt3dVec[i];}
 	double getReprojErr(){return ReprojErr;}
 	double getProjErr(){return ProjErr;}
 	double getDistReprojErr(){return dReprojErr;}
@@ -57,36 +58,36 @@ public:
 
 private:
 	//! runs all calibration types
-	void runAllCalTyp(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt);
+	void runAllCalTyp(std::vector<cv::Point2d> vo3dPt, std::vector<cv::Point2d> vo2dPt);
 	//! calculates reprojection error
-	double calcReprojErr2D(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld);
+	double calcReprojErr2D(std::vector<cv::Point2d> vo3dPt, std::vector<cv::Point2d> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld);
 	//
-	double calcReprojErr3D(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld);
+	double calcReprojErr3D(std::vector<cv::Point2d> vo3dPt, std::vector<cv::Point2d> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld);
 	//
-	double calcReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld, std::string mode = "2D3D");
+	double calcReprojErr(std::vector<cv::Point2d> vo3dPt, std::vector<cv::Point2d> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld, std::string mode = "2D3D");
 	//! outputs text file of homography matrix
 	void outTxt(void);
 	//! plots a display grid on the ground plane
 	void pltDispGrd(void);
 	//
-	PtObj initEdaParamRng(std::vector<cv::Point2f> m_vo3dPt);
+	PtObj initEdaParamRng(std::vector<cv::Point2d> m_vo3dPt);
 	//
 	void calCamEdaOpt(void);
 	//
 	PtObj estEdaParamRng(std::vector<PtObj>* pvoPtParams);
 	//
-	double calcDistReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld);
+	double calcDistReprojErr(std::vector<cv::Point2d> vo3dPt, std::vector<cv::Point2d> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld);
 	//
-	std::vector<cv::Point2f> initPts(PtObj sPtParamsObj);
+	std::vector<cv::Point2d> initPts(PtObj sPtParamsObj);
 
 	//! configuration parameters
 	CCfg m_oCfg;
 	//! frame image
 	cv::Mat m_oImgFrm;
 	//! list of 3D points for PnP
-	std::vector<cv::Point2f> m_vo3dPt;
+	std::vector<cv::Point2d> m_vo3dPt;
 	//! list of 2D points for PnP
-	std::vector<cv::Point2f> m_vo2dPt;
+	std::vector<cv::Point2d> m_vo2dPt;
 	//! homography matrix
 	cv::Mat m_oHomoMat;
 	//! reprojection error

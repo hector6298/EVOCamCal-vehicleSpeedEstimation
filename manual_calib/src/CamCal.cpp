@@ -21,19 +21,19 @@ void on_mouse(int event, int x, int y, int flags, void*)  // mouse event
 CCamCal::CCamCal(void)
 {
 	// list of 3D points for PnP
-	std::vector<cv::Point2f>().swap(m_vo3dPt);
+	std::vector<cv::Point2d>().swap(m_vo3dPt);
 
 	// list of 2D points for PnP
-	std::vector<cv::Point2f>().swap(m_vo2dPt);
+	std::vector<cv::Point2d>().swap(m_vo2dPt);
 }
 
 CCamCal::~CCamCal(void)
 {
 	// list of 3D points for PnP
-	std::vector<cv::Point2f>().swap(m_vo3dPt);
+	std::vector<cv::Point2d>().swap(m_vo3dPt);
 
 	// list of 2D points for PnP
-	std::vector<cv::Point2f>().swap(m_vo2dPt);
+	std::vector<cv::Point2d>().swap(m_vo2dPt);
 }
 
 void CCamCal::initialize(CCfg oCfg, cv::Mat oImgFrm)
@@ -63,7 +63,7 @@ void CCamCal::process(void)
 	// select 2D points if they are not provided in the configuration file
 	if (m_oCfg.getCalSel2dPtFlg())
 	{
-		std::vector<cv::Point2f>().swap(m_vo2dPt);
+		std::vector<cv::Point2d>().swap(m_vo2dPt);
 		o2dPtSel.initialize(m_oCfg, m_oImgFrm);
 		std::vector<cv::Point> vo2dPt = o2dPtSel.process();
 		std::cout << "Selected 2D points on the frame image: " << std::endl;
@@ -97,6 +97,8 @@ void CCamCal::process(void)
 	}
 	else{
 		calCamEdaOpt();
+		std::cout << m_vo3dPt[0].x << std:: endl;
+		m_oHomoMat = cv::findHomography(m_vo3dPt, m_vo2dPt, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
 		m_fReprojErr = calcReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "2D3D");
 		m_projErr = calcReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld(), "3D2D");
 		dReprojErr = calcDistReprojErr(m_vo3dPt, m_vo2dPt, m_oHomoMat, m_oCfg.getCalTyp(), m_oCfg.getCalRansacReprojThld());
@@ -112,29 +114,43 @@ bool compDistError(PtObj oCamParam1, PtObj oCamParam2)
 	return (oCamParam1.getProjErr() < oCamParam2.getProjErr());
 }
 
-std::vector<cv::Point2f> CCamCal::initPts(PtObj sPtParamsObj){
-	double pt3dx, pt3dy, pt3dx, pt3dy;
-	std::vector<cv::Point2f> randPt3dVec;
-
-	for(int i = 0; i < sPtParamsObj.pt2dVecMin.size(); i++){
-		
+std::vector<cv::Point2d> CCamCal::initPts(PtObj sPtParamsObj){
+	double pt2dx, pt2dy, pt3dx, pt3dy;
+	std::vector<cv::Point2d> randPt3dVec;
+	
+	for(int i = 0; i < sPtParamsObj.pt3dVecMin.size(); i++){
+		//std::cout << sPtParamsObj.pt3dVecMin[i].x << " " << sPtParamsObj.pt3dVecMax[i].x << " " << sPtParamsObj.pt3dVecMin[i].y << " " << sPtParamsObj.pt3dVecMax[i].y << std::endl;
 		pt3dx = get_rand_num(sPtParamsObj.pt3dVecMin[i].x, sPtParamsObj.pt3dVecMax[i].x, rand());
 		pt3dy = get_rand_num(sPtParamsObj.pt3dVecMin[i].y, sPtParamsObj.pt3dVecMax[i].y, rand());
 		
-		randPt2dVec.push_back({pt3dx, pt3dy});
+		randPt3dVec.push_back({pt3dx, pt3dy});
 	}
 	return randPt3dVec;
 }
 
-PtObj CCamCal::initEdaParamRng(std::vector<cv::Point2f> m_vo3dPt){
+PtObj CCamCal::initEdaParamRng(std::vector<cv::Point2d> m_vo3dPt){
 	PtObj sParamRng;
 
 	if(m_vo3dPt.size() != m_vo2dPt.size())
 		std::cout << "Sizes should be equal" << std::endl;
-	for(int i = 0; i < m_vo3dPt.size(); i++){
+	std::cout << m_oImgFrm.cols << std::endl;
 
-		sParamRng.pt3dVecMax.push_back({m_vo3dPt[i].x  + m_oImgFrm.cols*EDA_RNG_2DPT, m_vo3dPt[i].y  + m_oImgFrm.rows*EDA_RNG_2DPT});
-		sParamRng.pt3dVecMin.push_back({m_vo3dPt[i].x  - m_oImgFrm.cols*EDA_RNG_2DPT, m_vo3dPt[i].y  - m_oImgFrm.rows*EDA_RNG_2DPT});
+	double xmax =-500, xmin=100, ymax=-500, ymin=100;
+
+	for(int i = 0; i < m_vo3dPt.size(); i++){
+		if (m_vo3dPt[i].x > xmax) xmax= m_vo3dPt[i].x;
+		if (m_vo3dPt[i].x < xmin) xmin= m_vo3dPt[i].x;
+		if (m_vo3dPt[i].y > ymax) ymax= m_vo3dPt[i].y;
+		if (m_vo3dPt[i].y < ymin) ymin= m_vo3dPt[i].y;
+	}
+	std::cout << "min " << xmin << " " << ymin << " max " << xmax << " " << ymax << std::endl;
+	double xdiff = xmax - xmin;
+	double ydiff = ymax - ymin;
+	//std::cout << xdiff*EDA_RNG_2DPT << std::endl;
+	for(int i = 0; i < m_vo3dPt.size(); i++){
+		std::cout << ydiff << "pts" << m_vo3dPt[i].y << " " << m_vo3dPt[i].y  + ydiff*EDA_RNG_2DPT << std::endl;
+		sParamRng.pt3dVecMax.push_back({m_vo3dPt[i].x  + xdiff*EDA_RNG_2DPT, m_vo3dPt[i].y  + ydiff*EDA_RNG_2DPT});
+		sParamRng.pt3dVecMin.push_back({m_vo3dPt[i].x  - xdiff*EDA_RNG_2DPT, m_vo3dPt[i].y  - ydiff*EDA_RNG_2DPT});
 		
 	}
 	sParamRng.setVectorReady();
@@ -238,8 +254,9 @@ void CCamCal::calCamEdaOpt(void){
 		projErrStd = 0.0;
 
 		for(ivoPtParams = voPtParams.begin(); ivoPtParams != voPtParams.end(); ivoPtParams++){
-			std::vector<::Point2f> curr3dPtSet;
+			std::vector<::Point2d> curr3dPtSet;
 			for( int i = 0; i < m_vo3dPt.size(); i++){
+				//std::cout << ivoPtParams->getRand3dPt(i).x << std::endl;
 				curr3dPtSet.push_back(ivoPtParams->getRand3dPt(i));
 			}
 			// compute homography matrix
@@ -313,11 +330,12 @@ void CCamCal::calCamEdaOpt(void){
 		voPtParams.erase(voPtParams.begin() + nN, voPtParams.end());
 
 		//check if generation needs to stop
-
+		/*
 		if((0 < iIter) && ((projErrMeanPrev * EDA_REPROJ_ERR_THLD) > std::abs(projErrMean - projErrMeanPrev))){
 			std::printf("Projection error is small enough. Stop generation.\n");
 			break;
 		}
+		*/
 
 		sPtParamsObj = estEdaParamRng(&voPtParams);
 
@@ -345,7 +363,7 @@ void CCamCal::output(void)
 	pltDispGrd();
 }
 
-void CCamCal::runAllCalTyp(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt)
+void CCamCal::runAllCalTyp(std::vector<cv::Point2d> vo3dPt, std::vector<cv::Point2d> vo2dPt)
 {
 	cv::Mat oHomoMat;
 	double fReprojErr, fProjErr;
@@ -414,16 +432,16 @@ void CCamCal::runAllCalTyp(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Poin
 	
 }
 
-double CCamCal::calcDistReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld){
+double CCamCal::calcDistReprojErr(std::vector<cv::Point2d> vo3dPt, std::vector<cv::Point2d> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld){
 	
-	std::vector<cv::Point2f> backProjPts;
+	std::vector<cv::Point2d> backProjPts;
 	for(int i = 0; i < vo2dPt.size(); i++){
 		backProjPts.push_back(backproj2D3D(vo2dPt[i], oHomoMat));
 	}
 
-	std::vector<std::vector<cv::Point2f>> pairs3D = gen_pairs(vo3dPt);
+	std::vector<std::vector<cv::Point2d>> pairs3D = gen_pairs(vo3dPt);
 
-	std::vector<std::vector<cv::Point2f>> pairsBackproj = gen_pairs(backProjPts);
+	std::vector<std::vector<cv::Point2d>> pairsBackproj = gen_pairs(backProjPts);
 
 	double predDist;
 	double realDist;
@@ -449,12 +467,12 @@ double CCamCal::calcDistReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<c
 	
 }
 
-double CCamCal::calcReprojErr3D(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld){
+double CCamCal::calcReprojErr3D(std::vector<cv::Point2d> vo3dPt, std::vector<cv::Point2d> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld){
 	
 	double fReprojErr = 0;
 
 	for(int i = 0; i < vo3dPt.size(); i++){
-		cv::Point2f pt3d;
+		cv::Point2d pt3d;
 		pt3d = backproj2D3D(vo2dPt[i], oHomoMat);
 		fReprojErr += cv::norm(vo3dPt[i] - pt3d);
 	}
@@ -463,13 +481,13 @@ double CCamCal::calcReprojErr3D(std::vector<cv::Point2f> vo3dPt, std::vector<cv:
 	return fReprojErr;
 }
 
-double CCamCal::calcReprojErr2D(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld)
+double CCamCal::calcReprojErr2D(std::vector<cv::Point2d> vo3dPt, std::vector<cv::Point2d> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld)
 {
 	double fReprojErr = 0;
 
 	for (int i = 0; i < vo3dPt.size(); i++)
 	{
-		cv::Point2f o2dPt;
+		cv::Point2d o2dPt;
 		o2dPt = proj3D2D(vo3dPt[i], oHomoMat);
 		fReprojErr += cv::norm(vo2dPt[i] - o2dPt);
 	}
@@ -484,7 +502,7 @@ double CCamCal::calcReprojErr2D(std::vector<cv::Point2f> vo3dPt, std::vector<cv:
     return fReprojErr;
 }
 
-double CCamCal::calcReprojErr(std::vector<cv::Point2f> vo3dPt, std::vector<cv::Point2f> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld, std::string mode){
+double CCamCal::calcReprojErr(std::vector<cv::Point2d> vo3dPt, std::vector<cv::Point2d> vo2dPt, cv::Mat oHomoMat, int nCalTyp, double fCalRansacReprojThld, std::string mode){
 
 	if(mode == "2D3D") return calcReprojErr3D(vo3dPt, vo2dPt, oHomoMat, nCalTyp, fCalRansacReprojThld);
 	else if (mode =="3D2D") return calcReprojErr2D(vo3dPt, vo2dPt, oHomoMat, nCalTyp, fCalRansacReprojThld);
@@ -495,7 +513,7 @@ void CCamCal::outTxt(void)
 {
 	FILE* pfHomoMat = std::fopen(m_oCfg.getOutCamMatPth(), "w");
 
-	std::fprintf(pfHomoMat, "Homography matrix: %.15lf %.15lf %.15lf;%.15lf %.15lf %.15lf;%.15lf %.15lf %.15lf\n",
+	std::fprintf(pfHomoMat, "%.15lf %.15lf %.15lf;%.15lf %.15lf %.15lf;%.15lf %.15lf %.15lf\n",
 		m_oHomoMat.at<double>(0, 0), m_oHomoMat.at<double>(0, 1), m_oHomoMat.at<double>(0, 2),
 		m_oHomoMat.at<double>(1, 0), m_oHomoMat.at<double>(1, 1), m_oHomoMat.at<double>(1, 2),
 		m_oHomoMat.at<double>(2, 0), m_oHomoMat.at<double>(2, 1), m_oHomoMat.at<double>(2, 2));
@@ -525,11 +543,11 @@ void CCamCal::outTxt(void)
 			oCalDistCoeffMat.at<double>(2), oCalDistCoeffMat.at<double>(3));
 	}
 
-	std::fprintf(pfHomoMat, "Projection error: %.15lf\n", m_projErr);
+	std::fprintf(pfHomoMat, "%.15lf\n", m_projErr);
 	std::printf("Projection error: %.15lf\n", m_projErr);
-	std::fprintf(pfHomoMat, "Backrojection error: %.15lf\n", m_fReprojErr);
+	std::fprintf(pfHomoMat, "%.15lf\n", m_fReprojErr);
 	std::printf("Backprojection error: %.15lf\n", m_fReprojErr);
-	std::fprintf(pfHomoMat, "Distance error: %.15lf\n", dReprojErr);
+	std::fprintf(pfHomoMat, "%.15lf\n", dReprojErr);
 	std::printf("Distance error: %.15lf\n", dReprojErr);
 
 	std::fclose(pfHomoMat);
@@ -548,6 +566,7 @@ void CCamCal::pltDispGrd(void)
 
 	for (int i = 0; i < m_vo3dPt.size(); i++)
 	{
+		//std::cout << m_vo3dPt[i].x << std::endl;
 		if (fXMin > m_vo3dPt[i].x)
 			fXMin = m_vo3dPt[i].x;
 
@@ -562,22 +581,22 @@ void CCamCal::pltDispGrd(void)
 	}
 
 	// compute the endpoints for the 3D grid on the ground plane
-	std::vector<cv::Point2f> vo3dGrdPtTop, vo3dGrdPtBtm, vo3dGrdPtLft, vo3dGrdPtRgt;
+	std::vector<cv::Point2d> vo3dGrdPtTop, vo3dGrdPtBtm, vo3dGrdPtLft, vo3dGrdPtRgt;
 
 	for (int x = 0; x < oDispGrdDim.width; x++)
 	{
-		vo3dGrdPtTop.push_back(cv::Point2f((fXMin + (x * ((fXMax - fXMin) / (oDispGrdDim.width - 1)))), fYMin));
-		vo3dGrdPtBtm.push_back(cv::Point2f((fXMin + (x * ((fXMax - fXMin) / (oDispGrdDim.width - 1)))), fYMax));
+		vo3dGrdPtTop.push_back(cv::Point2d((fXMin + (x * ((fXMax - fXMin) / (oDispGrdDim.width - 1)))), fYMin));
+		vo3dGrdPtBtm.push_back(cv::Point2d((fXMin + (x * ((fXMax - fXMin) / (oDispGrdDim.width - 1)))), fYMax));
 	}
 
 	for (int y = 0; y < oDispGrdDim.height; y++)
 	{
-		vo3dGrdPtLft.push_back(cv::Point2f(fXMin, (fYMin + (y * ((fYMax - fYMin) / (oDispGrdDim.height - 1))))));
-		vo3dGrdPtRgt.push_back(cv::Point2f(fXMax, (fYMin + (y * ((fYMax - fYMin) / (oDispGrdDim.height - 1))))));
+		vo3dGrdPtLft.push_back(cv::Point2d(fXMin, (fYMin + (y * ((fYMax - fYMin) / (oDispGrdDim.height - 1))))));
+		vo3dGrdPtRgt.push_back(cv::Point2d(fXMax, (fYMin + (y * ((fYMax - fYMin) / (oDispGrdDim.height - 1))))));
 	}
 
 	// compute the endpoints for the projected 2D grid
-	std::vector<cv::Point2f> vo2dGrdPtTop, vo2dGrdPtBtm, vo2dGrdPtLft, vo2dGrdPtRgt;
+	std::vector<cv::Point2d> vo2dGrdPtTop, vo2dGrdPtBtm, vo2dGrdPtLft, vo2dGrdPtRgt;
 
 	for (int i = 0; i < oDispGrdDim.width; i++)
 	{
@@ -588,13 +607,13 @@ void CCamCal::pltDispGrd(void)
 		o3dPtMat.at<double>(1, 0) = vo3dGrdPtTop[i].y;
 		o3dPtMat.at<double>(2, 0) = 1;
 		o2dPtMat = m_oHomoMat * o3dPtMat;
-		vo2dGrdPtTop.push_back(cv::Point2f((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0))));
+		vo2dGrdPtTop.push_back(cv::Point2d((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0))));
 
 		o3dPtMat.at<double>(0, 0) = vo3dGrdPtBtm[i].x;
 		o3dPtMat.at<double>(1, 0) = vo3dGrdPtBtm[i].y;
 		o3dPtMat.at<double>(2, 0) = 1;
 		o2dPtMat = m_oHomoMat * o3dPtMat;
-		vo2dGrdPtBtm.push_back(cv::Point2f((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0))));
+		vo2dGrdPtBtm.push_back(cv::Point2d((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0))));
 	}
 
 	for (int i = 0; i < oDispGrdDim.height; i++)
@@ -606,13 +625,13 @@ void CCamCal::pltDispGrd(void)
 		o3dPtMat.at<double>(1, 0) = vo3dGrdPtLft[i].y;
 		o3dPtMat.at<double>(2, 0) = 1;
 		o2dPtMat = m_oHomoMat * o3dPtMat;
-		vo2dGrdPtLft.push_back(cv::Point2f((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0))));
+		vo2dGrdPtLft.push_back(cv::Point2d((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0))));
 
 		o3dPtMat.at<double>(0, 0) = vo3dGrdPtRgt[i].x;
 		o3dPtMat.at<double>(1, 0) = vo3dGrdPtRgt[i].y;
 		o3dPtMat.at<double>(2, 0) = 1;
 		o2dPtMat = m_oHomoMat * o3dPtMat;
-		vo2dGrdPtRgt.push_back(cv::Point2f((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0))));
+		vo2dGrdPtRgt.push_back(cv::Point2d((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0))));
 	}
 
 	// draw grid lines on the frame image
@@ -643,7 +662,7 @@ void CCamCal::pltDispGrd(void)
 		o3dPtMat.at<double>(2, 0) = 1;
 		o2dPtMat = m_oHomoMat * o3dPtMat;
 
-		cv::circle(oImgPlt, cv::Point2f((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0))),
+		cv::circle(oImgPlt, cv::Point2d((o2dPtMat.at<double>(0, 0) / o2dPtMat.at<double>(2, 0)), (o2dPtMat.at<double>(1, 0) / o2dPtMat.at<double>(2, 0))),
 			12, cv::Scalar(0, 0, 255), 1, LINE_AA);  // draw the circle
 	}
 
@@ -713,7 +732,7 @@ std::vector<cv::Point> C2dPtSel::process(void)
 			if (nKey == 'o')	// finish selection of pairs of test points
 			{
 				cv::destroyWindow("selector of 2D points");
-				std::vector<cv::Point2f> vo3dPt = m_oCfg.getCal3dPtLs();
+				std::vector<cv::Point2d> vo3dPt = m_oCfg.getCal3dPtLs();
 				if (vo3dPt.size() == m_voNd.size())
 					return m_voNd;
 				else

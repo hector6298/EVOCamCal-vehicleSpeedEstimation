@@ -16,7 +16,7 @@ parser.add_argument("-m", "--metric", default='euclidean',
 args = parser.parse_args()
 
 VIDEOPATH = f"source_material/streetVideos/seattle{args.video}.mp4"
-PARAMFILE = f"manual_calib/data/RANSAC/calibration{args.video}.txt"
+PARAMFILE = f"manual_calib/data/EDA/calibration{args.video}.txt"
 
 # Load the capture line endpoints to measure speed at that virtual line
 with open('source_material/speedDetectionSpots/detectionSpots.json') as json_file:

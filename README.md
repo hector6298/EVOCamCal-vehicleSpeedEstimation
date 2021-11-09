@@ -49,7 +49,7 @@ python3 workflowUtils/yolov4/save_model.py --weights workflowUtils/yolov4/data/y
 
 ### Download all my dataset
 
-This dataset contains footage from 10 videos taken from the Department of Transportation of Seattle. These videos are in .mp4 format, and each video contains the following annotations:
+This [dataset](https://drive.google.com/drive/folders/1sqsVGd72b57PlKgSkkSwdlUeAB5Y4rcF?usp=sharing) contains footage from 10 videos taken from the Department of Transportation of Seattle. These videos are in .mp4 format, and each video contains the following annotations:
 
 - Date when the videos were recorded.
 - 2D image coordinates from different points in the scene

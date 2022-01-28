@@ -1,6 +1,8 @@
 # Vehicle speed estimation from roadside camera
 This repo holds my graduation project. The goal is to harness computer vision and projective geometry to successfully transform a simple street camera into a vehicle speed estimator.
 
+Please, if you have any concerns feel free to raise an issue!
+
 ![vehicleestimation](https://user-images.githubusercontent.com/41920808/136614193-12f8896f-c8c3-46b0-8251-a90ce3963fcf.gif)
 
 
